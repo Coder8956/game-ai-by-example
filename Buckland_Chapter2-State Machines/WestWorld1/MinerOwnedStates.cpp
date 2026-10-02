@@ -115,7 +115,7 @@ void EnterMineAndDigForNugget::Enter(Miner* pMiner)
     // cout << x:流插入运算符"<<"把右侧内容依次送进输出流打印。
     // "\n"是换行符;GetNameOfEntity(pMiner->ID()) 把矿工编号翻译成
     // 名字"Miner Bob";台词:Walkin' to the goldmine(走去金矿)。
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' to the goldmine";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' to the goldmine(走去金矿)";
 
     // 把矿工的地点成员改成 goldmine(赶路一步到位)。
     pMiner->ChangeLocation(goldmine);
@@ -143,7 +143,7 @@ void EnterMineAndDigForNugget::Execute(Miner* pMiner)
 
   // 打印台词:Pickin' up a nugget(捡起一块金子)。
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Pickin' up a nugget";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Pickin' up a nugget(捡起一块金子)";
 
   //if enough gold mined, go and put it in the bank
   //(原文注释:挖够了金子就去存进银行)
@@ -173,7 +173,7 @@ void EnterMineAndDigForNugget::Exit(Miner* pMiner)
 {
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
   cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-       << "Ah'm leavin' the goldmine with mah pockets full o' sweet gold";
+       << "Ah'm leavin' the goldmine with mah pockets full o' sweet gold(俺揣着满满一口袋甜金子离开金矿)";
 }
 
 
@@ -205,7 +205,7 @@ void VisitBankAndDepositGold::Enter(Miner* pMiner)
   if (pMiner->Location() != bank)
   {
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Goin' to the bank. Yes siree";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Goin' to the bank. Yes siree(去银行喽。是嘞)";
 
     pMiner->ChangeLocation(bank);
   }
@@ -234,7 +234,7 @@ void VisitBankAndDepositGold::Execute(Miner* pMiner)
   // (Wealth() 读出存款,数字会自动转换成文字打印出来)。
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
   cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-       << "Depositing gold. Total savings now: "<< pMiner->Wealth();
+       << "Depositing gold. Total savings now: (正在存金子。目前总存款：) "<< pMiner->Wealth();
 
   //wealthy enough to have a well earned rest?
   //(原文注释大意:钱够多了,值得好好休息一下?)
@@ -244,7 +244,7 @@ void VisitBankAndDepositGold::Execute(Miner* pMiner)
   {
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-         << "WooHoo! Rich enough for now. Back home to mah li'lle lady";
+         << "WooHoo! Rich enough for now. Back home to mah li'lle lady(哇噢！眼下够富有啦。回家找俺那小媳妇去)";
       
     // 够富有 → 切换到"回家睡觉"状态。
     pMiner->ChangeState(GoHomeAndSleepTilRested::Instance());      
@@ -268,7 +268,7 @@ void VisitBankAndDepositGold::Execute(Miner* pMiner)
 void VisitBankAndDepositGold::Exit(Miner* pMiner)
 {
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leavin' the bank";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leavin' the bank(离开银行)";
 }
 
 
@@ -295,7 +295,7 @@ void GoHomeAndSleepTilRested::Enter(Miner* pMiner)
   if (pMiner->Location() != shack)
   {
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' home";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' home(走回家去)";
 
     pMiner->ChangeLocation(shack); 
   }
@@ -316,7 +316,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
   {
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY); 
     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-          << "What a God darn fantastic nap! Time to find more gold";
+          << "What a God darn fantastic nap! Time to find more gold(这觉睡得可真带劲！该去找更多金子啦)";
 
     // 睡醒 → 切换回"挖矿"状态。
      pMiner->ChangeState(EnterMineAndDigForNugget::Instance());
@@ -332,7 +332,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
     pMiner->DecreaseFatigue();
 
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "ZZZZ... ";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "ZZZZ... (呼噜噜……) ";
   } 
 }
 
@@ -342,7 +342,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
 void GoHomeAndSleepTilRested::Exit(Miner* pMiner)
 { 
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the house";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the house(离开小屋)";
 }
 
 
@@ -373,7 +373,7 @@ void QuenchThirst::Enter(Miner* pMiner)
     pMiner->ChangeLocation(saloon);
 
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Boy, ah sure is thusty! Walking to the saloon";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Boy, ah sure is thusty! Walking to the saloon(天哪，俺是真的渴坏了！这就走去酒吧)";
   }
 }
 
@@ -392,7 +392,7 @@ void QuenchThirst::Execute(Miner* pMiner)
      pMiner->BuyAndDrinkAWhiskey();
 
      SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "That's mighty fine sippin liquer";
+     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "That's mighty fine sippin liquer(这口小酒喝着可真够劲儿)";
 
      // 喝爽了 → 切回"挖矿"状态,继续搬砖。
      pMiner->ChangeState(EnterMineAndDigForNugget::Instance());
@@ -403,7 +403,7 @@ void QuenchThirst::Execute(Miner* pMiner)
   else 
   {
     SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-    cout << "\nERROR!\nERROR!\nERROR!";
+    cout << "\nERROR!(错误！)\nERROR!(错误！)\nERROR!(错误！)";
   } 
 }
 
@@ -413,6 +413,6 @@ void QuenchThirst::Execute(Miner* pMiner)
 void QuenchThirst::Exit(Miner* pMiner)
 { 
   SetTextColor(FOREGROUND_RED| FOREGROUND_INTENSITY);
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the saloon, feelin' good";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the saloon, feelin' good(离开酒吧，感觉真不赖)";
 }
 

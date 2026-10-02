@@ -64,18 +64,18 @@ inline std::string GetNameOfEntity(int n)
 
     // return —— 结束函数,并把后面的值作为结果送回给调用者。
     // 这里返回字符串字面量 "Miner Bob"(双引号括起来的一串字符)。
-    return "Miner Bob";
+    return "Miner Bob(矿工鲍勃)";
 
   // 如果编号是 ent_Elsa(即 1):
   case ent_Elsa:
     
-    return "Elsa"; 
+    return "Elsa(艾尔莎)"; 
 
   // default —— 兜底分支:上面所有 case 都没命中时执行。
   // 将来若出现没登记过名字的新编号,返回 "UNKNOWN!" 而不是空白。
   default:
 
-    return "UNKNOWN!";
+    return "UNKNOWN!(未知！)";
   }
 }
 

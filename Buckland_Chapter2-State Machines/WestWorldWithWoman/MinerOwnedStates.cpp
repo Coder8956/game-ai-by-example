@@ -238,7 +238,7 @@ void VisitBankAndDepositGold::Execute(Miner* pMiner)
     // 台词:WooHoo! Rich enough for now. Back home to mah li'lle lady
     //      (哇噢!眼下够富有啦。回家找俺那小媳妇去)。
     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-         << "WooHoo! Rich enough for now. Back home to mah li'lle lady";
+         << "WooHoo! Rich enough for now. Back home to mah li'lle lady(哇噢!眼下够富有啦。回家找俺那小媳妇去)";
       
     // 够富有 → 切换到"回家睡觉"状态。
     pMiner->GetFSM()->ChangeState(GoHomeAndSleepTilRested::Instance());      
@@ -263,7 +263,7 @@ void VisitBankAndDepositGold::Execute(Miner* pMiner)
 //--------------------------------------------------------------------------------
 void VisitBankAndDepositGold::Exit(Miner* pMiner)
 {
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leavin' the bank";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leavin' the bank(离开银行)";
 }
 
 
@@ -290,7 +290,7 @@ void GoHomeAndSleepTilRested::Enter(Miner* pMiner)
   if (pMiner->Location() != shack)
   {
     // 台词:Walkin' home(走回家去)。
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' home";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Walkin' home(走回家去)";
 
     pMiner->ChangeLocation(shack); 
   }
@@ -312,7 +312,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
     // 台词:What a God darn fantastic nap! Time to find more gold
     //      (这觉睡得可真带劲!该去找更多金子啦)。
      cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " 
-          << "What a God darn fantastic nap! Time to find more gold";
+          << "What a God darn fantastic nap! Time to find more gold(这觉睡得可真带劲!该去找更多金子啦)";
 
     // 睡醒 → 切换回"挖矿"状态。
      pMiner->GetFSM()->ChangeState(EnterMineAndDigForNugget::Instance());
@@ -328,7 +328,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
     pMiner->DecreaseFatigue();
 
     // 台词:ZZZZ...(呼噜噜……)。
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "ZZZZ... ";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "ZZZZ... (呼噜噜……)";
   } 
 }
 
@@ -338,7 +338,7 @@ void GoHomeAndSleepTilRested::Execute(Miner* pMiner)
 //--------------------------------------------------------------------------------
 void GoHomeAndSleepTilRested::Exit(Miner* pMiner)
 { 
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the house";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the house(离开小屋)";
 }
 
 
@@ -371,7 +371,7 @@ void QuenchThirst::Enter(Miner* pMiner)
 
     // 台词:Boy, ah sure is thusty! Walking to the saloon
     //      (天哪,俺是真的渴坏了!这就走去酒吧)。
-    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Boy, ah sure is thusty! Walking to the saloon";
+    cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Boy, ah sure is thusty! Walking to the saloon(天哪,俺是真的渴坏了!这就走去酒吧)";
   }
 }
 
@@ -390,7 +390,7 @@ void QuenchThirst::Execute(Miner* pMiner)
      pMiner->BuyAndDrinkAWhiskey();
 
      // 台词:That's mighty fine sippin' liquer(这口小酒喝着可真够劲儿)。
-     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "That's mighty fine sippin' liquer";
+     cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "That's mighty fine sippin' liquer(这口小酒喝着可真够劲儿)";
 
      // 喝爽了 → 切回"挖矿"状态,继续搬砖。
      pMiner->GetFSM()->ChangeState(EnterMineAndDigForNugget::Instance());
@@ -400,7 +400,7 @@ void QuenchThirst::Execute(Miner* pMiner)
   // 字符串里的 "\n" 是换行符,所以会竖着连打三行 ERROR!。
   else 
   {
-    cout << "\nERROR!\nERROR!\nERROR!";
+    cout << "\nERROR!(错误!)\nERROR!(错误!)\nERROR!(错误!)";
   }  
 }
 
@@ -410,6 +410,6 @@ void QuenchThirst::Execute(Miner* pMiner)
 //--------------------------------------------------------------------------------
 void QuenchThirst::Exit(Miner* pMiner)
 { 
-  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the saloon, feelin' good";
+  cout << "\n" << GetNameOfEntity(pMiner->ID()) << ": " << "Leaving the saloon, feelin' good(离开酒吧,感觉真不赖)";
 }
 

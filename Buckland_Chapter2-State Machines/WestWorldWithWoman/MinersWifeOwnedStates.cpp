@@ -128,7 +128,7 @@ void DoHouseWork::Execute(MinersWife* wife)
   case 0:
 
     // 台词:Moppin' the floor(拖地板)。
-    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Moppin' the floor";
+    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Moppin' the floor(拖地板)";
 
     // break:跳出 switch——干完这件就结束本步,绝不再往下穿到别的 case
     // (没有 break 的话会继续执行 case 1、case 2 的代码,叫"贯穿"陷阱)。
@@ -138,7 +138,7 @@ void DoHouseWork::Execute(MinersWife* wife)
   case 1:
 
     // 台词:Washin' the dishes(洗碗)。
-    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Washin' the dishes";
+    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Washin' the dishes(洗碗)";
 
     break;
 
@@ -146,7 +146,7 @@ void DoHouseWork::Execute(MinersWife* wife)
   case 2:
 
     // 台词:Makin' the bed(铺床)。
-    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Makin' the bed";
+    cout << "\n" << GetNameOfEntity(wife->ID()) << ": Makin' the bed(铺床)";
 
     break;
   }
@@ -183,7 +183,7 @@ VisitBathroom* VisitBathroom::Instance()
 //--------------------------------------------------------------------------------
 void VisitBathroom::Enter(MinersWife* wife)
 {  
-  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Walkin' to the can. Need to powda mah pretty li'lle nose"; 
+  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Walkin' to the can. Need to powda mah pretty li'lle nose(去趟卫生间。得给俺滴漂亮小鼻子补补粉啦)"; 
 }
 
 
@@ -194,7 +194,7 @@ void VisitBathroom::Enter(MinersWife* wife)
 void VisitBathroom::Execute(MinersWife* wife)
 {
   // 台词:Ahhhhhh! Sweet relief!(啊——!真舒坦!)
-  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Ahhhhhh! Sweet relief!";
+  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Ahhhhhh! Sweet relief!(啊——!真舒坦!)";
 
   // 【blip 的收尾】RevertToPreviousState():退回上一状态(实现见
   // StateMachine.h——它就是再调一次 ChangeState 切回存档的旧状态)。
@@ -208,5 +208,5 @@ void VisitBathroom::Execute(MinersWife* wife)
 //--------------------------------------------------------------------------------
 void VisitBathroom::Exit(MinersWife* wife)
 {
-  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Leavin' the Jon";
+  cout << "\n" << GetNameOfEntity(wife->ID()) << ": Leavin' the Jon(离开卫生间)";
 }

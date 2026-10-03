@@ -77,7 +77,7 @@ inline std::string GetNameOfEntity(int n)
   // 将来若出现没登记过名字的新编号,返回 "UNKNOWN!" 而不是空白。
   default:
 
-    return "UNKNOWN!";
+    return "UNKNOWN!(未知角色)";
   }
 }
 

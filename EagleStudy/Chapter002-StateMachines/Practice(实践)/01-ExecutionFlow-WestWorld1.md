@@ -170,15 +170,14 @@ flowchart TD
 每个状态对象的三个函数，分别由谁、在什么时候调用：
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Enter : 首次切进本状态（ChangeState 第③步）
-    Enter --> Execute : 等待下一次 Update
-    Execute --> Execute : Miner::Update 每步一次
-    Execute --> Exit : ChangeState 第①步（切出本状态）
-    Exit --> [*]
-    note right of Enter : 赶路 + 开场白（只一次）
-    note right of Execute : 干活 + 念台词 + 判断要不要切换
-    note right of Exit : 告别台词（只一次）
+flowchart TD
+    A["切进本状态（ChangeState 第③步）"] --> B["Enter —— 进场，只执行 1 次<br/>赶路 + 开场白"]
+    B --> C["等待矿工的下一次 Update()"]
+    C --> D["Execute —— 处于本状态期间每步 1 次<br/>干活 + 念台词 + 判断要不要切换"]
+    D --> E{"本步触发切换了吗？"}
+    E -->|不切换| C
+    E -->|切换| F["Exit —— 离场，只执行 1 次<br/>告别台词（ChangeState 第①步）"]
+    F --> G["本状态谢幕，矿工由新状态接管"]
 ```
 
 | 接口函数 | 调用者 | 调用时机 |

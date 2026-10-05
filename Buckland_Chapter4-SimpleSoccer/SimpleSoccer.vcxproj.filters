@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SimpleSoccer.vcxproj.filters — 与 SimpleSoccer.vcxproj 清单一一对应
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Common Source Files">
+      <UniqueIdentifier>{8D9C3F55-8F3A-4C1A-9A2B-1A2B3C4D5E6F}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx</Extensions>
+    </Filter>
+    <Filter Include="Common Header Files">
+      <UniqueIdentifier>{9E0D4A66-9B4B-4D2B-8B3C-2B3C4D5E6F70}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 本工程源文件 -->
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParamLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoccerPitch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoccerTeam.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SteeringBehaviors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SupportSpotCalculator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldPlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldPlayerStates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Goalkeeper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GoalKeeperStates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoccerBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SoccerMessages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TeamStates.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <!-- 外部共享源文件 -->
+    <ClCompile Include="..\Common\2D\Vector2d.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Debug\DebugConsole.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Game\BaseGameEntity.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Game\EntityManager.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Messaging\MessageDispatcher.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\misc\Cgdi.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\misc\FrameCounter.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\misc\iniFileLoaderBase.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\misc\WindowUtils.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Time\PrecisionTimer.cpp">
+      <Filter>Common Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 本工程头文件 -->
+    <ClInclude Include="afxres.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FieldPlayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FieldPlayerStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Goal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Goalkeeper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GoalKeeperStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParamLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoccerBall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoccerMessages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoccerPitch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SoccerTeam.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SteeringBehaviors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SupportSpotCalculator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TeamStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <!-- 外部共享头文件 -->
+    <ClInclude Include="..\Common\2D\C2DMatrix.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\2D\geometry.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\2D\Transformations.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\2D\Vector2D.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\2D\Wall2D.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Debug\DebugConsole.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\FSM\State.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\FSM\StateMachine.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Game\BaseGameEntity.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Game\EntityFunctionTemplates.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Game\EntityManager.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Game\MovingEntity.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Game\Region.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Messaging\MessageDispatcher.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Messaging\Telegram.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\autolist.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\Cgdi.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\FrameCounter.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\iniFileLoaderBase.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\utils.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\misc\WindowUtils.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Time\PrecisionTimer.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Time\Regulator.h">
+      <Filter>Common Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Script1.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Params.ini">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

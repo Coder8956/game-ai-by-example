@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Steering — VS 2026 (v145) 工程文件
+  由 restoration-project skill 从旧工程修复生成：
+  - ProjectGUID {EE007DA3-D5E6-4E7C-84BA-A1753F852497} 与原 .vcproj/.sln 一致
+  - Debug/Release Win32 双配置，CharacterSet=MultiByte(2)
+  - RuntimeLibrary: Debug=MultiThreadedDebug(/MTd, 旧值1), Release=MultiThreaded(/MT, 旧值0)
+  - SubSystem=Windows(2, GUI 程序，入口 WinMain)
+  - 外部共享代码位于 ..\Common（本工程在仓库一级子目录）
+  - Script1.rc 依赖 afxres.h：本机未装 MFC 组件，用工程目录最小桩头替代
+-->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <ProjectGuid>{EE007DA3-D5E6-4E7C-84BA-A1753F852497}</ProjectGuid>
+    <RootNamespace>Steering</RootNamespace>
+    <!-- 10.0 = 自动使用最新已安装的 Windows SDK，勿硬编码具体版本号 -->
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <!-- ConfigurationType=1(Application)、CharacterSet=2(MultiByte)：按旧工程映射 -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <!-- RuntimeLibrary 按旧工程映射：Debug=1(/MTd)、Release=0(/MT)；SubSystem=2(Windows) -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- 外部共享头位于 ..\Common（源码 #include 使用 2d/、misc/、time/ 前缀） -->
+      <AdditionalIncludeDirectories>..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <!-- Script1.rc 引用 afxres.h：工程目录桩头 -->
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- 本工程源文件（与原 .vcproj Source Files 清单一致） -->
+    <ClCompile Include="GameWorld.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Obstacle.cpp" />
+    <ClCompile Include="ParamLoader.cpp" />
+    <ClCompile Include="Path.cpp" />
+    <ClCompile Include="SteeringBehaviors.cpp" />
+    <ClCompile Include="Vehicle.cpp" />
+    <!-- 外部共享源文件（原 .vcproj misc 分组，相对路径与原引用一致） -->
+    <ClCompile Include="..\Common\2D\Vector2d.cpp" />
+    <ClCompile Include="..\Common\misc\Cgdi.cpp" />
+    <ClCompile Include="..\Common\misc\iniFileLoaderBase.cpp" />
+    <ClCompile Include="..\Common\misc\WindowUtils.cpp" />
+    <ClCompile Include="..\Common\Time\PrecisionTimer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 本工程头文件 -->
+    <ClInclude Include="afxres.h" />
+    <ClInclude Include="BaseGameEntity.h" />
+    <ClInclude Include="constants.h" />
+    <ClInclude Include="EntityFunctionTemplates.h" />
+    <ClInclude Include="GameWorld.h" />
+    <ClInclude Include="MovingEntity.h" />
+    <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="ParamLoader.h" />
+    <ClInclude Include="Path.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SteeringBehaviors.h" />
+    <ClInclude Include="Vehicle.h" />
+    <!-- 外部共享头文件（与原 .vcproj 引用一致） -->
+    <ClInclude Include="..\Common\2D\C2DMatrix.h" />
+    <ClInclude Include="..\Common\2D\geometry.h" />
+    <ClInclude Include="..\Common\2D\InvertedAABBox2D.h" />
+    <ClInclude Include="..\Common\2D\Transformations.h" />
+    <ClInclude Include="..\Common\2D\Vector2D.h" />
+    <ClInclude Include="..\Common\2D\Wall2D.h" />
+    <ClInclude Include="..\Common\misc\CellSpacePartition.h" />
+    <ClInclude Include="..\Common\misc\Cgdi.h" />
+    <ClInclude Include="..\Common\misc\iniFileLoaderBase.h" />
+    <ClInclude Include="..\Common\misc\Smoother.h" />
+    <ClInclude Include="..\Common\misc\Stream_Utility_Functions.h" />
+    <ClInclude Include="..\Common\misc\utils.h" />
+    <ClInclude Include="..\Common\misc\WindowUtils.h" />
+    <ClInclude Include="..\Common\Time\PrecisionTimer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Script1.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="params.ini" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

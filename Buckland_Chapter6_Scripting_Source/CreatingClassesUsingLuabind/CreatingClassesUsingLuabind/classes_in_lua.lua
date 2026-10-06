@@ -1,4 +1,6 @@
 
+require "class"
+
 -----------------------------Lua script to define the class: Animal
 
 class 'Animal'

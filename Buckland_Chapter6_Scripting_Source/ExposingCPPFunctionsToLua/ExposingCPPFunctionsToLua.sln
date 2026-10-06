@@ -1,7 +1,6 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExposingCPPFunctionsToLua", "ExposingCPPFunctionsToLua\ExposingCPPFunctionsToLua.vcproj", "{766519A1-FD34-4A82-A6F7-8606FD8A87A0}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExposingCPPFunctionsToLua", "ExposingCPPFunctionsToLua\ExposingCPPFunctionsToLua.vcxproj", "{766519A1-FD34-4A82-A6F7-8606FD8A87A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

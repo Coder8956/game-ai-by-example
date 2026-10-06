@@ -1,7 +1,6 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp_using_lua", "cpp_using_lua.vcproj", "{50CC410D-A6AC-4344-956B-EA064E799F4E}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp_using_lua", "cpp_using_lua.vcxproj", "{50CC410D-A6AC-4344-956B-EA064E799F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

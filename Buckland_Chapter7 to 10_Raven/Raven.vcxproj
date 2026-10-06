@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Raven.vcxproj — VS 2026 (v145) 工程，由 restoration-project skill 从
+  Raven.vcproj (VS2008) / Raven.dsp (VC6) 忠实映射生成。
+  设置映射：ConfigurationType=1→Application；CharacterSet=2→MultiByte；
+  RuntimeLibrary Debug=1→/MTd、Release=0→/MT；SubSystem=2→Windows（GUI 程序，入口 WinMain）；
+  ProjectGUID={EC1EBBC4-4F57-4002-856A-5C1BCFBC7BF9} 与 .sln 保持一致。
+-->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <ProjectGuid>{EC1EBBC4-4F57-4002-856A-5C1BCFBC7BF9}</ProjectGuid>
+    <RootNamespace>Raven</RootNamespace>
+    <!-- 10.0 = 自动使用最新已安装的 Windows SDK，勿硬编码具体版本号 -->
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserPropertiesDir)Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- ..\Common 为仓库共享代码；lua-5.1.5\include 提供 <lua.h> 等（Scriptor.h 引入） -->
+      <AdditionalIncludeDirectories>..\Common;..\Common\lua-5.1.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <!-- lua5.1.lib 由 Scriptor.h 中 #pragma comment(lib,"lua5.1.lib") 引入，需库搜索路径 -->
+      <AdditionalLibraryDirectories>..\Common\lua-5.1.5;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Common;..\Common\lua-5.1.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\Common\lua-5.1.5;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- 工程源文件（与旧工程 Source Files 清单一致，条目均与磁盘实际文件一一对应） -->
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Raven_Bot.cpp" />
+    <ClCompile Include="Raven_Game.cpp" />
+    <ClCompile Include="Raven_Map.cpp" />
+    <ClCompile Include="Raven_Door.cpp" />
+    <ClCompile Include="Raven_UserOptions.cpp" />
+    <ClCompile Include="Raven_SensoryMemory.cpp" />
+    <ClCompile Include="Raven_SteeringBehaviors.cpp" />
+    <ClCompile Include="Raven_TargetingSystem.cpp" />
+    <ClCompile Include="Raven_WeaponSystem.cpp" />
+    <ClCompile Include="GraveMarkers.cpp" />
+    <ClCompile Include="lua\Raven_Scriptor.cpp" />
+    <ClCompile Include="armory\Raven_Weapon.cpp" />
+    <ClCompile Include="armory\Weapon_Blaster.cpp" />
+    <ClCompile Include="armory\Weapon_RailGun.cpp" />
+    <ClCompile Include="armory\Weapon_RocketLauncher.cpp" />
+    <ClCompile Include="armory\Weapon_ShotGun.cpp" />
+    <ClCompile Include="armory\Projectile_Bolt.cpp" />
+    <ClCompile Include="armory\Projectile_Pellet.cpp" />
+    <ClCompile Include="armory\Projectile_Rocket.cpp" />
+    <ClCompile Include="armory\Projectile_Slug.cpp" />
+    <ClCompile Include="armory\Raven_Projectile.cpp" />
+    <ClCompile Include="goals\Raven_Goal_Types.cpp" />
+    <ClCompile Include="goals\Goal_AdjustRange.cpp" />
+    <ClCompile Include="goals\Goal_AttackTarget.cpp" />
+    <ClCompile Include="goals\Goal_Explore.cpp" />
+    <ClCompile Include="goals\Goal_FollowPath.cpp" />
+    <ClCompile Include="goals\Goal_GetItem.cpp" />
+    <ClCompile Include="goals\Goal_HuntTarget.cpp" />
+    <ClCompile Include="goals\Goal_MoveToPosition.cpp" />
+    <ClCompile Include="goals\Goal_NegotiateDoor.cpp" />
+    <ClCompile Include="goals\Goal_Think.cpp" />
+    <ClCompile Include="goals\AttackTargetGoal_Evaluator.cpp" />
+    <ClCompile Include="goals\ExploreGoal_Evaluator.cpp" />
+    <ClCompile Include="goals\GetHealthGoal_Evaluator.cpp" />
+    <ClCompile Include="goals\GetWeaponGoal_Evaluator.cpp" />
+    <ClCompile Include="goals\Raven_Feature.cpp" />
+    <ClCompile Include="goals\Goal_DodgeSideToSide.cpp" />
+    <ClCompile Include="goals\Goal_SayPhrase.cpp" />
+    <ClCompile Include="goals\Goal_SeekToPosition.cpp" />
+    <ClCompile Include="goals\Goal_TraverseEdge.cpp" />
+    <ClCompile Include="goals\Goal_Wander.cpp" />
+    <ClCompile Include="navigation\Raven_PathPlanner.cpp" />
+    <ClCompile Include="triggers\Trigger_HealthGiver.cpp" />
+    <ClCompile Include="triggers\Trigger_SoundNotify.cpp" />
+    <ClCompile Include="triggers\Trigger_WeaponGiver.cpp" />
+    <!-- Common 共享源文件（旧工程 ClCompile 清单） -->
+    <ClCompile Include="..\Common\2D\Vector2d.cpp" />
+    <ClCompile Include="..\Common\Debug\DebugConsole.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzyModule.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzyOperators.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzyVariable.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzySet_LeftShoulder.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzySet_RightShoulder.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzySet_Singleton.cpp" />
+    <ClCompile Include="..\Common\fuzzy\FuzzySet_Triangle.cpp" />
+    <ClCompile Include="..\Common\Game\BaseGameEntity.cpp" />
+    <ClCompile Include="..\Common\Game\EntityManager.cpp" />
+    <ClCompile Include="..\Common\Messaging\MessageDispatcher.cpp" />
+    <ClCompile Include="..\Common\misc\Cgdi.cpp" />
+    <ClCompile Include="..\Common\misc\FrameCounter.cpp" />
+    <ClCompile Include="..\Common\misc\WindowUtils.cpp" />
+    <ClCompile Include="..\Common\Time\CrudeTimer.cpp" />
+    <ClCompile Include="..\Common\Time\PrecisionTimer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 工程头文件 -->
+    <ClInclude Include="constants.h" />
+    <ClInclude Include="GraveMarkers.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Raven_Bot.h" />
+    <ClInclude Include="Raven_Door.h" />
+    <ClInclude Include="Raven_Game.h" />
+    <ClInclude Include="Raven_Map.h" />
+    <ClInclude Include="Raven_Messages.h" />
+    <ClInclude Include="Raven_ObjectEnumerations.h" />
+    <ClInclude Include="Raven_SensoryMemory.h" />
+    <ClInclude Include="Raven_SteeringBehaviors.h" />
+    <ClInclude Include="Raven_Target.h" />
+    <ClInclude Include="Raven_TargetingSystem.h" />
+    <ClInclude Include="Raven_UserOptions.h" />
+    <ClInclude Include="Raven_WeaponSystem.h" />
+    <ClInclude Include="lua\Raven_Scriptor.h" />
+    <ClInclude Include="armory\Projectile_Bolt.h" />
+    <ClInclude Include="armory\Projectile_Pellet.h" />
+    <ClInclude Include="armory\Projectile_Rocket.h" />
+    <ClInclude Include="armory\Projectile_Slug.h" />
+    <ClInclude Include="armory\Raven_Projectile.h" />
+    <ClInclude Include="armory\Raven_Weapon.h" />
+    <ClInclude Include="armory\Weapon_Blaster.h" />
+    <ClInclude Include="armory\Weapon_RailGun.h" />
+    <ClInclude Include="armory\Weapon_RocketLauncher.h" />
+    <ClInclude Include="armory\Weapon_ShotGun.h" />
+    <ClInclude Include="goals\AttackTargetGoal_Evaluator.h" />
+    <ClInclude Include="goals\ExploreGoal_Evaluator.h" />
+    <ClInclude Include="goals\GetHealthGoal_Evaluator.h" />
+    <ClInclude Include="goals\GetWeaponGoal_Evaluator.h" />
+    <ClInclude Include="goals\Goal_AdjustRange.h" />
+    <ClInclude Include="goals\Goal_AttackTarget.h" />
+    <ClInclude Include="goals\Goal_DodgeSideToSide.h" />
+    <ClInclude Include="goals\Goal_Evaluator.h" />
+    <ClInclude Include="goals\Goal_Explore.h" />
+    <ClInclude Include="goals\Goal_FollowPath.h" />
+    <ClInclude Include="goals\Goal_GetItem.h" />
+    <ClInclude Include="goals\Goal_HuntTarget.h" />
+    <ClInclude Include="goals\Goal_MoveToPosition.h" />
+    <ClInclude Include="goals\Goal_NegotiateDoor.h" />
+    <ClInclude Include="goals\Goal_SayPhrase.h" />
+    <ClInclude Include="goals\Goal_SeekToPosition.h" />
+    <ClInclude Include="goals\Goal_Think.h" />
+    <ClInclude Include="goals\Goal_TraverseEdge.h" />
+    <ClInclude Include="goals\Goal_Wander.h" />
+    <ClInclude Include="goals\Raven_Feature.h" />
+    <ClInclude Include="goals\Raven_Goal_Types.h" />
+    <ClInclude Include="navigation\PathEdge.h" />
+    <ClInclude Include="navigation\PathManager.h" />
+    <ClInclude Include="navigation\Raven_PathPlanner.h" />
+    <ClInclude Include="navigation\SearchTerminationPolicies.h" />
+    <ClInclude Include="navigation\TimeSlicedGraphAlgorithms.h" />
+    <ClInclude Include="triggers\Trigger_HealthGiver.h" />
+    <ClInclude Include="triggers\Trigger_OnButtonSendMsg.h" />
+    <ClInclude Include="triggers\Trigger_SoundNotify.h" />
+    <ClInclude Include="triggers\Trigger_WeaponGiver.h" />
+    <!-- Common 共享头文件（旧工程 ClInclude 清单；lua 头映射到仓库实际版本 5.1.5） -->
+    <ClInclude Include="..\Common\2D\C2DMatrix.h" />
+    <ClInclude Include="..\Common\2D\geometry.h" />
+    <ClInclude Include="..\Common\2D\InvertedAABBox2D.h" />
+    <ClInclude Include="..\Common\2D\Transformations.h" />
+    <ClInclude Include="..\Common\2D\Vector2D.h" />
+    <ClInclude Include="..\Common\2D\Wall2D.h" />
+    <ClInclude Include="..\Common\2D\WallIntersectionTests.h" />
+    <ClInclude Include="..\Common\Debug\DebugConsole.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyHedges.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyModule.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyOperators.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyRule.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet_LeftShoulder.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet_RightShoulder.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet_Shoulder.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet_Singleton.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzySet_Triangle.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyTerm.h" />
+    <ClInclude Include="..\Common\fuzzy\FuzzyVariable.h" />
+    <ClInclude Include="..\Common\fuzzy\FzSet.h" />
+    <ClInclude Include="..\Common\Game\BaseGameEntity.h" />
+    <ClInclude Include="..\Common\Game\EntityFunctionTemplates.h" />
+    <ClInclude Include="..\Common\Game\EntityManager.h" />
+    <ClInclude Include="..\Common\Game\MovingEntity.h" />
+    <ClInclude Include="..\Common\Goals\Goal.h" />
+    <ClInclude Include="..\Common\Goals\Goal_Composite.h" />
+    <ClInclude Include="..\Common\Graph\AStarHeuristicPolicies.h" />
+    <ClInclude Include="..\Common\Graph\GraphAlgorithms.h" />
+    <ClInclude Include="..\Common\Graph\GraphEdgeTypes.h" />
+    <ClInclude Include="..\Common\Graph\GraphNodeTypes.h" />
+    <ClInclude Include="..\Common\Graph\HandyGraphFunctions.h" />
+    <ClInclude Include="..\Common\Graph\NodeTypeEnumerations.h" />
+    <ClInclude Include="..\Common\Graph\SparseGraph.h" />
+    <ClInclude Include="..\Common\lua-5.1.5\include\lua.h" />
+    <ClInclude Include="..\Common\lua-5.1.5\include\lualib.h" />
+    <ClInclude Include="..\Common\lua-5.1.5\include\lauxlib.h" />
+    <ClInclude Include="..\Common\lua-5.1.5\include\luahelperfunctions.h" />
+    <ClInclude Include="..\Common\Messaging\MessageDispatcher.h" />
+    <ClInclude Include="..\Common\Messaging\Telegram.h" />
+    <ClInclude Include="..\Common\misc\CellSpacePartition.h" />
+    <ClInclude Include="..\Common\misc\Cgdi.h" />
+    <ClInclude Include="..\Common\misc\FrameCounter.h" />
+    <ClInclude Include="..\Common\misc\PriorityQueue.h" />
+    <ClInclude Include="..\Common\misc\Stream_Utility_Functions.h" />
+    <ClInclude Include="..\Common\misc\utils.h" />
+    <ClInclude Include="..\Common\misc\WindowUtils.h" />
+    <ClInclude Include="..\Common\script\Scriptor.h" />
+    <ClInclude Include="..\Common\Time\CrudeTimer.h" />
+    <ClInclude Include="..\Common\Time\PrecisionTimer.h" />
+    <ClInclude Include="..\Common\Time\Regulator.h" />
+    <ClInclude Include="..\Common\Triggers\Trigger.h" />
+    <ClInclude Include="..\Common\Triggers\Trigger_LimitedLifeTime.h" />
+    <ClInclude Include="..\Common\Triggers\Trigger_Respawning.h" />
+    <ClInclude Include="..\Common\Triggers\TriggerRegion.h" />
+    <ClInclude Include="..\Common\Triggers\TriggerSystem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Script1.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 数据文件（运行时从工作目录读取：Params.lua 与 StartMap 指定的地图） -->
+    <None Include="Params.lua" />
+    <None Include="maps\Raven_DM1.map" />
+    <None Include="maps\Raven_DM1_With_Doors.map" />
+    <!-- 运行时依赖：lua5.1.dll 随构建复制到输出目录（与 Chapter 6 工程惯例一致） -->
+    <None Include="..\Common\lua-5.1.5\lua5.1.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

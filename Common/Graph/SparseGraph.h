@@ -1,5 +1,34 @@
+﻿//==============================================================================================
+//【文件说明】SparseGraph.h —— 图论模块的核心:稀疏图(邻接表实现)
+//
+//【这个文件是干什么的?】
+//  这是第 5 章寻路工程(以及 Raven)真正使用的"图"类。所谓"稀疏图"(sparse graph),
+//  是指一张图里大多数节点之间并没有边相连(地图上几百个路口,每个路口只连几条路)。
+//  它用"邻接表"(adjacency list)存储:每个节点配一个链表,只装"自己连出去的边"。
+//  对比"邻接矩阵"(n×n 方阵),邻接表省内存、适合边稀疏的真实地图。
+//
+//【谁在使用这个文件?】
+//  GraphAlgorithms.h(Dijkstra/A* 算法)、HandyGraphFunctions.h(建网格/画图);
+//  第 5 章 Pathfinder.cpp 与 Raven(第 7~10 章)用它表示导航图。
+//
+//【本文件包含了谁?】
+//  <vector>/<list>/<cassert>/<string>/<iostream> —— 标准库(动态数组/链表/断言);
+//  "2D/Vector2D.h"、"misc/utils.h"、"graph/NodeTypeEnumerations.h"。
+//
+//【C++ 小课堂:模板 + typedef + 迭代器】
+//  本类是模板类:template <class node_type, class edge_type> 表示节点类型、边类型
+//  都由使用者指定(基础图/导航图各配不同的节点和边)。
+//  typedef 给复杂类型起短名:如 typedef std::vector<node_type> NodeVector;
+//    之后写 NodeVector 就等价于 std::vector<node_type>。
+//  迭代器(iterator)是标准库容器的"指针式游标":begin() 指向第一个,
+//    ++it 走到下一个,end() 表示已走到末尾。
+//==============================================================================================
 #ifndef SPARSEGRAPH_H
 #define SPARSEGRAPH_H
+//--------------------------------------------------------------------------------
+// #pragma warning(disable:4786) 原理详见 SoccerPitch.h 中的同名注释(历史遗留警告)。
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 #pragma warning (disable:4786)
 //------------------------------------------------------------------------
 //
@@ -24,10 +53,22 @@
 
 
 template <class node_type, class edge_type>   
+//--------------------------------------------------------------------------------
+// 上面 template <class node_type, class edge_type> 是模板声明:
+//   node_type = 节点类型;edge_type = 边类型,都由使用方在实例化时指定。
+// class SparseGraph —— 稀疏图类(邻接表)。
+//--------------------------------------------------------------------------------
 class SparseGraph                                 
 {
 public:
 
+//--------------------------------------------------------------------------------
+// 下面 5 行 typedef(类型别名):给外层使用者一个"短名",方便他们写代码。
+//   EdgeType/NodeType      —— 把模板参数 node_type/edge_type 暴露出去;
+//   NodeVector             —— std::vector<node_type> = 装所有节点的动态数组;
+//   EdgeList               —— std::list<edge_type>  = 一个节点的所有出边链表;
+//   EdgeListVector         —— vector<EdgeList> = 每个节点各配一条边链表的大数组。
+//--------------------------------------------------------------------------------
   //enable easy client access to the edge and node types used in the graph
   typedef edge_type                EdgeType;
   typedef node_type                NodeType;
@@ -41,6 +82,13 @@ public:
  
 private:
   
+//--------------------------------------------------------------------------------
+// private 成员(只有本类能直接访问):
+//   m_Nodes        —— 全部节点(按下标编号存储);
+//   m_Edges        —— 邻接表:m_Edges[i] 就是节点 i 的所有出边链表;
+//   m_bDigraph     —— true=有向图(边只走一个方向),false=无向(自动加反向边);
+//   m_iNextNodeIndex —— 下一个新节点要用的编号(自增计数器)。
+//--------------------------------------------------------------------------------
   //the nodes that comprise this graph
   NodeVector      m_Nodes;
 
@@ -55,6 +103,8 @@ private:
   int             m_iNextNodeIndex;
   
     
+  // UniqueEdge:新加边前检查"这条 from→to 的边是否已存在",防止重复连边。
+  // CullInvalidEdges:删除节点后,清理所有指向"已作废节点"的悬空边。
   //returns true if an edge is not already present in the graph. Used
   //when adding edges to make sure no duplicates are created.
   bool  UniqueEdge(int from, int to)const;
@@ -65,9 +115,13 @@ private:
   
 public:
   
+//--------------------------------------------------------------------------------
+// 构造函数:参数 digraph = 是否有向图;nextNodeIndex 从 0 开始。
+//--------------------------------------------------------------------------------
   //ctor
   SparseGraph(bool digraph): m_iNextNodeIndex(0), m_bDigraph(digraph){}
 
+  // GetNode/GetEdge 各有两份:const 版(只读)与非 const 版(可改)。
   //returns the node at the given index
   const NodeType&  GetNode(int idx)const;
 
@@ -81,6 +135,9 @@ public:
   EdgeType& GetEdge(int from, int to);
     
 
+  // 下面是图的核心操作:GetNextFreeNodeIndex 取下一个可用编号;AddNode 加节点;
+  // RemoveNode 标记作废(不真删,避免挪动所有下标);AddEdge/RemoveEdge 加/删边;
+  // SetEdgeCost 改某条边的代价;NumNodes/NumActiveNodes/NumEdges 统计数量。
   //retrieves the next free node index
   int   GetNextFreeNodeIndex()const{return m_iNextNodeIndex;}
   
@@ -166,6 +223,15 @@ public:
   }
 
   
+//--------------------------------------------------------------------------------
+// 嵌套迭代器类(定义在图类内部,"图的专用游标"):
+//   EdgeIterator       —— 遍历某节点的所有出边(可改);
+//   ConstEdgeIterator  —— 同上,但只读;
+//   NodeIterator      —— 遍历图中所有有效节点(可改,自动跳过已作废节点);
+//   ConstNodeIterator  —— 只读版。
+//  每个迭代器都提供 begin()/next()/end() 三件套:begin 回到开头,next 走下一个,
+//  end() 返回 true 表示已经走完。friend class 让迭代器能直接访问图的私有成员。
+//--------------------------------------------------------------------------------
     //non const class used to iterate through all the edges connected to a specific node. 
       class EdgeIterator
       {
@@ -406,6 +472,12 @@ public:
 //  returns true if a node with the given index is present in the graph
 //--------------------------------------------------------------------------
 template <class node_type, class edge_type>
+//--------------------------------------------------------------------------------
+// 下面是在类外实现的成员函数(模板类的实现习惯写在 .h 里,因为编译器要看到源码
+// 才能按使用者给出的节点/边类型生成具体代码)。
+// 函数名写法:返回值 类名<模板参数>::函数名 —— 作用域解析符::表示"这是模板类的成员函数"。
+// isNodePresent:编号 nd 在图中且未被作废 → 返回 true。
+//--------------------------------------------------------------------------------
 bool SparseGraph<node_type, edge_type>::isNodePresent(int nd)const
 {
     if ((nd >= (int)m_Nodes.size() || (m_Nodes[nd].Index() == invalid_node_index)))
@@ -420,6 +492,7 @@ bool SparseGraph<node_type, edge_type>::isNodePresent(int nd)const
 //  returns true if an edge with the given from/to is present in the graph
 //--------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // isEdgePresent:遍历 from 节点的出边链表,看有没有终点为 to 的边。
 bool SparseGraph<node_type, edge_type>::isEdgePresent(int from, int to)const
 {
     if (isNodePresent(from) && isNodePresent(from))
@@ -440,6 +513,7 @@ bool SparseGraph<node_type, edge_type>::isEdgePresent(int from, int to)const
 //  const and non const methods for obtaining a reference to a specific node
 //----------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // GetNode(只读):断言下标合法后返回节点引用(引用 = 别名,不复制对象)。
 const node_type&  SparseGraph<node_type, edge_type>::GetNode(int idx)const
 {
     assert( (idx < (int)m_Nodes.size()) &&
@@ -465,6 +539,8 @@ node_type&  SparseGraph<node_type, edge_type>::GetNode(int idx)
 //  const and non const methods for obtaining a reference to a specific edge
 //----------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // GetEdge(只读):先断言两节点合法,再在 from 的出边链表中找 to 边;
+  // 找不到就 assert(0 && ...) 让程序在调试期立刻报错。
 const edge_type& SparseGraph<node_type, edge_type>::GetEdge(int from, int to)const
 {
   assert( (from < m_Nodes.size()) &&
@@ -519,6 +595,11 @@ edge_type& SparseGraph<node_type, edge_type>::GetEdge(int from, int to)
 //  direction will be automatically added.
 //-----------------------------------------------------------------------------
 template <class node_type, class edge_type>
+//--------------------------------------------------------------------------------
+// AddEdge:加一条边。先断言两节点编号合法、两节点都未作废;
+// 再用 UniqueEdge 查重,没有重复就 push_back 进 m_Edges[from] 链表;
+// 若为无向图(!m_bDigraph),还要复制一条反向边(to→from)加进去。
+//--------------------------------------------------------------------------------
 void SparseGraph<node_type, edge_type>::AddEdge(EdgeType edge)
 {
   //first make sure the from and to nodes exist within the graph 
@@ -556,6 +637,8 @@ void SparseGraph<node_type, edge_type>::AddEdge(EdgeType edge)
 
 //----------------------------- RemoveEdge ---------------------------------
 template <class node_type, class edge_type>
+  // RemoveEdge:在 from 的出边链表中找到 to 边并用 erase 删除;
+  // 无向图时还要顺便删掉 to→from 的反向边。
 void SparseGraph<node_type, edge_type>::RemoveEdge(int from, int to)
 {
   assert ( (from < (int)m_Nodes.size()) && (to < (int)m_Nodes.size()) &&
@@ -590,6 +673,11 @@ void SparseGraph<node_type, edge_type>::RemoveEdge(int from, int to)
 //  index matches the next node index before being added to the graph
 //------------------------------------------------------------------------
 template <class node_type, class edge_type>
+//--------------------------------------------------------------------------------
+// AddNode:加节点。两种情况:
+//   ① 节点编号已存在(说明之前被作废过)→ 重新激活,放回原位置;
+//   ② 全新编号 → push_back 进节点数组,并给它配一条空的边链表,编号自增。
+//--------------------------------------------------------------------------------
 int SparseGraph<node_type, edge_type>::AddNode(node_type node)
 {
   if (node.Index() < (int)m_Nodes.size())
@@ -622,6 +710,7 @@ int SparseGraph<node_type, edge_type>::AddNode(node_type node)
 //  to an invalidated node
 //-----------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // CullInvalidEdges:双重循环遍历所有边,凡端点是 invalid_node_index 的就 erase 掉。
 void SparseGraph<node_type, edge_type>::CullInvalidEdges()
 {
   for (EdgeListVector::iterator curEdgeList = m_Edges.begin(); curEdgeList != m_Edges.end(); ++curEdgeList)
@@ -644,6 +733,11 @@ void SparseGraph<node_type, edge_type>::CullInvalidEdges()
 //  nodes
 //------------------------------------------------------------------------
 template <class node_type, class edge_type>
+//--------------------------------------------------------------------------------
+// RemoveNode:把节点编号设成 invalid_node_index(逻辑删除,不物理挪动下标)。
+//   无向图:手工清掉所有邻居指向自己的边,再清空自己的边链表;
+//   有向图:直接调 CullInvalidEdges 统一清理。
+//--------------------------------------------------------------------------------
 void SparseGraph<node_type, edge_type>::RemoveNode(int node)                                   
 {
   assert(node < (int)m_Nodes.size() && "<SparseGraph::RemoveNode>: invalid node index");
@@ -689,6 +783,7 @@ void SparseGraph<node_type, edge_type>::RemoveNode(int node)
 //  Sets the cost of a specific edge
 //------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // SetEdgeCost:在 from 的出边链表中找到 to 边,把它的代价改成 NewCost。
 void SparseGraph<node_type, edge_type>::SetEdgeCost(int from, int to, double NewCost)
 {
   //make sure the nodes given are valid
@@ -714,6 +809,7 @@ void SparseGraph<node_type, edge_type>::SetEdgeCost(int from, int to, double New
 //  edges to prevent duplication
 //------------------------------------------------------------------------
 template <class node_type, class edge_type>
+  // UniqueEdge:遍历 from 的出边,若已存在 to 边返回 false(不唯一),否则 true。
 bool SparseGraph<node_type, edge_type>::UniqueEdge(int from, int to)const
 {
   for (EdgeList::const_iterator curEdge = m_Edges[from].begin();
@@ -732,6 +828,8 @@ bool SparseGraph<node_type, edge_type>::UniqueEdge(int from, int to)const
 //-------------------------------- Save ---------------------------------------
 
 template <class node_type, class edge_type>
+  // Save/Load 各有两个重载:按文件名版(自己打开文件)和按文件流版(由调用者传入流)。
+  // 存盘顺序:节点数 → 所有节点 → 边数 → 所有边;读盘时按同序恢复。
 bool SparseGraph<node_type, edge_type>::Save(const char* FileName)const
 {
   //open the file and make sure it's valid

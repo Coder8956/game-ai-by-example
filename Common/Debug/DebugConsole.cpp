@@ -1,8 +1,17 @@
+﻿//==============================================================================================
+//【文件说明】DebugConsole.cpp —— 调试控制台的实现
+//
+//【主要内容】这是一段 Win32 窗口程序代码:DebugWindowProc 处理窗口消息(创建/重绘/滚动/
+//  按键),Create 注册并创建窗口,Instance 返回单例,WriteAndResetBuffer 把缓冲写文件。
+//  业务上只需会用 debug_con 宏,不必深究窗口细节。
+//【谁包含它】Debug/DebugConsole.h。
+//==============================================================================================
 #include "Debug/DebugConsole.h"
 #include <iterator>
 #pragma warning (disable : 4786)
 
 //initialize static variable
+  //(原文注释:初始化静态变量)——类的 static 成员要在类外这里真正定义并赋初值。
 std::vector<std::string> DebugConsole::m_Buffer;
 HWND                     DebugConsole::m_hwnd       = NULL;
 bool                     DebugConsole::m_bFlushed   = true;
@@ -18,6 +27,9 @@ int                      DebugConsole::m_iPosTop;
 //-----------------------------------InfoWinProc-----------------------------
 //
 //-----------------------------------------------------------------------
+//----------------------------- 窗口消息处理函数 -----------------------------
+// ↓↓↓ 上面三行分隔注释的标题:DebugWindowProc——窗口收到消息时被操作系统回调。
+// switch(msg) 按消息类型分发:WM_CREATE 建字体、WM_VSCROLL 滚滚动条、WM_PAINT 重绘文字。
 LRESULT CALLBACK DebugConsole::DebugWindowProc(HWND hwnd, 
 						                             UINT msg, 
                                          WPARAM wparam, 
@@ -243,6 +255,8 @@ LRESULT CALLBACK DebugConsole::DebugWindowProc(HWND hwnd,
 //----------------------------- Create -----------------------------------
 //
 //------------------------------------------------------------------------
+//----------------------------- Create 创建窗口 -----------------------------------
+// ↓↓↓ 上面三行分隔注释:注册窗口类 WNDCLASSEX 并 CreateWindow 出调试小窗,同时打开 DebugLog.txt。
 bool DebugConsole::Create()
 {
   m_hwnd       = NULL;
@@ -314,6 +328,8 @@ bool DebugConsole::Create()
 //  
 //  Retrieve a pointer to an instance of this class
 //-----------------------------------------------------------------------------
+//---------------------------- Instance 取单例 ---------------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:取回本类唯一实例的指针。第一次调用时才 Create 窗口。
 DebugConsole* DebugConsole::Instance()
 {
    static DebugConsole instance;     
@@ -326,6 +342,8 @@ DebugConsole* DebugConsole::Instance()
 
 //--------------------------- WriteAndResetBuffer -----------------------------
 //-----------------------------------------------------------------------------
+//--------------------------- WriteAndResetBuffer 写文件并清空 -----------------------------
+// 把缓冲里每行追加进 DebugLog.txt,清空缓冲,并通知窗口滚动到底。
 void DebugConsole::WriteAndResetBuffer()
 {
  

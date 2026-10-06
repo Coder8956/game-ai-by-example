@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】triggers\Trigger_WeaponGiver.cpp —— 武器包触发器的实现
+//==============================================================================================
 #include "Trigger_WeaponGiver.h"
 #include "misc/Cgdi.h"
 #include "misc/Stream_Utility_Functions.h"
@@ -10,6 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// 构造函数:Read 读参数,再初始化火箭形状的 8 个顶点。
 Trigger_WeaponGiver::Trigger_WeaponGiver(std::ifstream& datafile):
       
           Trigger_Respawning<Raven_Bot>(GetValueFromStream<int>(datafile))
@@ -34,6 +38,7 @@ Trigger_WeaponGiver::Trigger_WeaponGiver(std::ifstream& datafile):
 }
 
 
+// Try:激活且 pBot 踩到?就调武器系统加一把本类型武器,然后 Deactivate。
 void Trigger_WeaponGiver::Try(Raven_Bot* pBot)
 {
   if (this->isActive() && this->isTouchingTrigger(pBot->Pos(), pBot->BRadius()))
@@ -47,6 +52,7 @@ void Trigger_WeaponGiver::Try(Raven_Bot* pBot)
 
 
 
+// Read:从文件读位置/半径/导航图节点,设触发区和重生延迟。
 void Trigger_WeaponGiver::Read(std::ifstream& in)
 {
   double x, y, r;
@@ -67,6 +73,7 @@ void Trigger_WeaponGiver::Read(std::ifstream& in)
 
 
 
+// Render:按武器类型画不同图标——railgun 蓝圈+线、霰弹枪双圈、火箭筒红多边形。
 void Trigger_WeaponGiver::Render()
 {
   if (isActive())

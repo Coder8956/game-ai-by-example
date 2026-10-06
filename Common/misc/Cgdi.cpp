@@ -1,3 +1,7 @@
+﻿//==============================================================================================
+//【文件说明】Cgdi.cpp —— GDI 单例的构造/析构:创建并销毁所有画笔和画刷
+//  构造时用 CreatePen/CreateSolidBrush 创建;析构时用 DeleteObject 释放。
+//==============================================================================================
 #include "misc/Cgdi.h"
 
 
@@ -5,12 +9,14 @@
 //
 //   this class is a singleton
 //-----------------------------------------------------------------------------
+  // Instance:单例经典写法(函数内静态局部变量)。
 Cgdi* Cgdi::Instance()
 {
   static Cgdi instance;
   return &instance;
 }
 
+  // 构造:PS_SOLID 实线,1 像素细笔(前 15 个)和 2 像素粗笔(后 5 个)。
 Cgdi::Cgdi()
 {
   m_BlackPen = CreatePen(PS_SOLID, 1, colors[black]);
@@ -50,6 +56,7 @@ Cgdi::Cgdi()
   m_hdc = NULL;
 }
 
+  // 析构:逐个 DeleteObject 释放 GDI 资源,防止内存泄漏。
 Cgdi::~Cgdi()
 {
   DeleteObject(m_BlackPen);

@@ -1,5 +1,17 @@
+﻿//==============================================================================================
+//【文件说明】TriggerSystem.h —— 触发器管理器(统一更新、统一检测、统一释放)
+//
+//【这个文件是干什么的?】
+//  用 list<trigger_type*> 管理所有触发器。每帧 Update(entities) 做两件事:
+//  ① UpdateTriggers:逐个 Update 触发器,把已标记删除的 delete+erase;
+//    ② TryTriggers:对每个活着且就绪的实体,调每个触发器的 Try(entity)。
+//  Register 注册新触发器,Render 统一画,Clear 统一清空。
+//==============================================================================================
 #ifndef TRIGGERSYSTEM_H
 #define TRIGGERSYSTEM_H
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 //  Name:    TriggerSystem.h
@@ -13,6 +25,9 @@
 //
 //-----------------------------------------------------------------------------
 template <class trigger_type>
+//--------------------------------------------------------------------------------
+// class TriggerSystem —— 触发器集合管理(模板,trigger_type 是具体触发器类)。
+//--------------------------------------------------------------------------------
 class TriggerSystem
 {
 public:
@@ -28,6 +43,7 @@ private:
   //calls their Update method in order that their internal state can be
   //updated if necessary. It also removes any triggers from the system that
   //have their m_bRemoveFromGame field set to true.
+  // UpdateTriggers:遍历 m_Triggers,已死的 delete+erase,活着的 Update。
   void UpdateTriggers()
   {
     TriggerList::iterator curTrg = m_Triggers.begin();
@@ -54,6 +70,7 @@ private:
   //parameter and passes each one to the Try method of each trigger *provided*
   //the entity is alive and provided the entity is ready for a trigger update.
   template <class ContainerOfEntities>
+  // TryTriggers:对每个实体,若它 alive 且 ready,就逐个触发器 Try 它。
   void TryTriggers(ContainerOfEntities& entities)
   {
     //test each entity against the triggers
@@ -82,6 +99,7 @@ public:
   }
 
   //this deletes any current triggers and empties the trigger list
+  // Clear:逐个 delete 所有触发器再清空链表。
   void Clear()
   {
     TriggerList::iterator curTrg;
@@ -105,6 +123,7 @@ public:
 
   //this is used to register triggers with the TriggerSystem (the TriggerSystem
   //will take care of tidying up memory used by a trigger)
+  // Register:注册触发器;Render:统一画;GetTriggers:取链表常量引用。
   void Register(trigger_type* trigger)
   {
     m_Triggers.push_back(trigger);

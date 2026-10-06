@@ -1,3 +1,15 @@
+﻿//==============================================================================================
+//【文件说明】SoccerTeam.cpp —— 球队类的实现(建队/每帧更新/战术决策)
+//
+//【这个文件是干什么的?】
+//  构造球队时 new 出状态机并把初始状态设为 Defending(防守),再 CreatePlayers()
+//  创建 1 门将 + 4 场上球员;Update() 每帧先算谁离球最近、再驱动球队状态机、
+//  最后逐个更新球员。CanShoot/FindPass/IsPassSafe 等实现射门与传球的可行性判断。
+//
+//【本文件包含了谁?】
+//  自己的 .h,以及 Goal/PlayerBase/GoalKeeper/FieldPlayer/SteeringBehaviors/
+//  GoalKeeperStates/TeamStates/ParamLoader/2D geometry/MessageDispatcher/SoccerMessages 等。
+//==============================================================================================
 #include "SoccerTeam.h"
 #include "SoccerPitch.h"
 #include "Goal.h"
@@ -22,6 +34,9 @@ using std::vector;
 //----------------------------- ctor -------------------------------------
 //
 //------------------------------------------------------------------------
+// 构造函数:初始化列表先接住双方球门/球场/颜色等参数(关键球员指针先置 NULL);
+// 函数体里:new 状态机并把当前/上一状态都设为 Defending(防守);CreatePlayers() 建球员;
+// 给每个球员开启 SeparationOn(避免互相叠);最后 new 接应甜区计算器。
 SoccerTeam::SoccerTeam(Goal*        home_goal,
                        Goal*        opponents_goal,
                        SoccerPitch* pitch,
@@ -63,6 +78,7 @@ SoccerTeam::SoccerTeam(Goal*        home_goal,
 //----------------------- dtor -------------------------------------------
 //
 //------------------------------------------------------------------------
+// 析构函数:释放状态机、逐个 delete 球员指针、释放接应甜区计算器(防内存泄漏)。
 SoccerTeam::~SoccerTeam()
 {
   delete m_pStateMachine;
@@ -81,6 +97,10 @@ SoccerTeam::~SoccerTeam()
 //  iterates through each player's update function and calculates 
 //  frequently accessed info
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// 每帧更新:①先算谁离球最近(高频信息只算一次);②驱动球队状态机(进攻/防守/开球);
+// ③再逐个 Update 每个球员。
+//--------------------------------------------------------------------------------
 void SoccerTeam::Update()
 {
   //this information is used frequently so it's more efficient to 
@@ -107,6 +127,8 @@ void SoccerTeam::Update()
 //
 //  sets m_iClosestPlayerToBall to the player closest to the ball
 //------------------------------------------------------------------------
+// 遍历本队球员,算每人到球距离的平方(平方比较省开方),记录最近者;
+// 同时把每人的距离平方写回他自己身上(供球员自己查询)。
 void SoccerTeam::CalculateClosestPlayerToBall()
 {
   double ClosestSoFar = MaxFloat;
@@ -137,6 +159,7 @@ void SoccerTeam::CalculateClosestPlayerToBall()
 //
 // calculate the closest player to the SupportSpot
 //------------------------------------------------------------------------
+// 在进攻球员中(排除控球者),找离最佳接应点最近的人,派他去支援。
 PlayerBase* SoccerTeam::DetermineBestSupportingAttacker()
 {
   double ClosestSoFar = MaxFloat;
@@ -173,6 +196,10 @@ PlayerBase* SoccerTeam::DetermineBestSupportingAttacker()
 //  The best pass is considered to be the pass that cannot be intercepted 
 //  by an opponent and that is as far forward of the receiver as possible
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// FindPass:遍历本队球员,对每个人试 GetBestPassToReceiver();选出"能传、且落点离对方球门
+// 最近"的那脚,把接球者和传球目标通过引用参数 receiver/PassTarget 返回。
+//--------------------------------------------------------------------------------
 bool SoccerTeam::FindPass(const PlayerBase*const passer,
                          PlayerBase*&           receiver,
                          Vector2D&              PassTarget,
@@ -232,6 +259,8 @@ bool SoccerTeam::FindPass(const PlayerBase*const passer,
 //  the function returns the pass that takes the ball closest to the 
 //  opponent's goal area.
 //------------------------------------------------------------------------
+// GetBestPassToReceiver:先算球到接球者要多久、这段时间接球者能跑多远(=拦截半径),
+// 再在接球者周围算 3 个候选落点(两条切线点+当前点),挑出"在场地内且不会被断"的最佳落点。
 bool SoccerTeam::GetBestPassToReceiver(const PlayerBase* const passer,
                                        const PlayerBase* const receiver,
                                        Vector2D&               PassTarget,
@@ -304,6 +333,8 @@ bool SoccerTeam::GetBestPassToReceiver(const PlayerBase* const passer,
 //  test if a pass from 'from' to 'to' can be intercepted by an opposing
 //  player
 //------------------------------------------------------------------------
+// isPassSafeFromOpponent:把对方球员坐标换算到"传球方向"的局部坐标系,
+// 判断他能否在球传到之前跑到传球线路上拦截;跑不到=安全,返回 true。
 bool SoccerTeam::isPassSafeFromOpponent(Vector2D    from,
                                         Vector2D    target,
                                         const PlayerBase* const receiver,
@@ -381,6 +412,8 @@ bool SoccerTeam::isPassSafeFromOpponent(Vector2D    from,
 //  of the opposing team. Returns true if the pass can be made without
 //  getting intercepted
 //------------------------------------------------------------------------
+// isPassSafeFromAllOpponents:逐个问每个对方球员"这脚传得安全吗",
+// 只要有一个能断就立刻返回 false;全员都拦不下才返回 true。
 bool SoccerTeam::isPassSafeFromAllOpponents(Vector2D                from,
                                             Vector2D                target,
                                             const PlayerBase* const receiver,
@@ -410,6 +443,8 @@ bool SoccerTeam::isPassSafeFromAllOpponents(Vector2D                from,
 //  found, the function will immediately return true, with the target 
 //  position stored in the vector ShotTarget.
 //------------------------------------------------------------------------
+// CanShoot:在对方球门线上随机试 NumAttempts 个射门点,看哪个方向用给定力度能射穿、
+// 且不会被任何对方拦截;找到一个可行射门点就把方向存进 ShotTarget 返回 true。
 bool SoccerTeam::CanShoot(Vector2D  BallPos,
                           double     power, 
                           Vector2D& ShotTarget)const
@@ -455,6 +490,7 @@ bool SoccerTeam::CanShoot(Vector2D  BallPos,
 //
 //  sends a message to all players to return to their home areas forthwith
 //------------------------------------------------------------------------
+// 给所有非门将球员发 Msg_GoHome 消息,让他们立刻回到各自老家区域(门将控球时用)。
 void SoccerTeam::ReturnAllFieldPlayersToHome()const
 {
   std::vector<PlayerBase*>::const_iterator it = m_Players.begin();
@@ -477,6 +513,8 @@ void SoccerTeam::ReturnAllFieldPlayersToHome()const
 //
 //  renders the players and any team related info
 //------------------------------------------------------------------------
+// Render:画每个球员;按参数开关在屏幕上方显示"哪队控球/谁在控球",并画接应甜区。
+// 末尾 #ifdef SHOW_TEAM_STATE 等是被条件编译关闭的调试可视化代码。
 void SoccerTeam::Render()const
 {
   std::vector<PlayerBase*>::const_iterator it = m_Players.begin();
@@ -564,6 +602,11 @@ void SoccerTeam::Render()const
 //
 //  creates the players
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// CreatePlayers:按球队颜色(蓝/红)new 出 1 个 GoalKeeper + 4 个 FieldPlayer,
+// 初始状态分别是 TendGoal(门将)和 Wait(场上球员);最后向实体管理器 EntityMgr 注册。
+// 蓝队朝 (0,1)、红队朝 (0,-1)(面对面)。push_back 把新球员追加进 m_Players。
+//--------------------------------------------------------------------------------
 void SoccerTeam::CreatePlayers()
 {
   if (Color() == blue)
@@ -718,6 +761,10 @@ void SoccerTeam::CreatePlayers()
 }
 
 
+// 下面是几个小工具:GetPlayerFromID 按编号找球员;SetPlayerHomeRegion 设某球员老家区域;
+// UpdateTargetsOfWaitingPlayers 让"等待/回位中"的球员把移动目标设为老家区域中心;
+// AllPlayersAtHome 全员是否都回到老家;RequestPass 向控球者发"把球传给我";
+// isOpponentWithinRadius 判断某位置半径内有没有对方球员。
 PlayerBase* SoccerTeam::GetPlayerFromID(int id)const
 {
   std::vector<PlayerBase*>::const_iterator it = m_Players.begin();

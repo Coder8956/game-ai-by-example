@@ -1,3 +1,9 @@
+﻿//==============================================================================================
+//【文件说明】Raven_SteeringBehaviors.cpp —— 转向行为的实现
+//
+//【直觉理解】每个行为函数返回一个「期望力向量」:把机器人当前速度减掉,
+//   剩下的就是要加在它身上的加速度。本文件把 5 个经典行为逐一实现。
+//==============================================================================================
 #include "Raven_SteeringBehaviors.h"
 #include "Raven_Bot.h"
 #include "2d/Wall2D.h"
@@ -20,6 +26,7 @@ using std::vector;
 //------------------------- ctor -----------------------------------------
 //
 //------------------------------------------------------------------------
+// 构造函数:从脚本(script->)读权重参数,初始化 wander 目标点。
 Raven_Steering::Raven_Steering(Raven_Game* world, Raven_Bot* agent):
                                   
              m_pWorld(world),
@@ -46,6 +53,7 @@ Raven_Steering::Raven_Steering(Raven_Game* world, Raven_Bot* agent):
 
 {
   //stuff for the wander behavior
+//(原文注释:wander 行为相关的初始化)
   double theta = RandFloat() * TwoPi;
 
   //create a vector to a target position on the wander circle
@@ -55,6 +63,7 @@ Raven_Steering::Raven_Steering(Raven_Game* world, Raven_Bot* agent):
 }
 
 //---------------------------------dtor ----------------------------------
+// 析构函数(空)。
 Raven_Steering::~Raven_Steering(){}
 
 
@@ -65,7 +74,11 @@ Raven_Steering::~Raven_Steering(){}
 //
 //  calculates the accumulated steering force according to the method set
 //  in m_SummingMethod
+//(原文注释翻译:按 m_SummingMethod 设定的方式,累加所有选中行为的转向力)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Calculate:每帧入口。先清零合力,若开了 separation 就先给邻居打标签,
+//   然后调 CalculatePrioritized 算合力。
 Vector2D Raven_Steering::Calculate()
 { 
   //reset the steering force
@@ -86,6 +99,7 @@ Vector2D Raven_Steering::Calculate()
 //
 //  returns the forward oomponent of the steering force
 //------------------------------------------------------------------------
+// ForwardComponent/SideComponent:合力点乘前进方向/侧向,得到前后/侧向分量。
 double Raven_Steering::ForwardComponent()
 {
   return m_pRaven_Bot->Heading().Dot(m_vSteeringForce);
@@ -105,7 +119,10 @@ double Raven_Steering::SideComponent()
 //  This function calculates how much of its max steering force the 
 //  vehicle has left to apply and then applies that amount of the
 //  force to add.
+//(原文注释翻译:算出最大转向力还剩多少额度,把新的力加进去,不超过上限)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// AccumulateForce:累加力,但总长度不超过 MaxForce。
 bool Raven_Steering::AccumulateForce(Vector2D &RunningTot,
                                        Vector2D ForceToAdd)
 {  
@@ -149,7 +166,10 @@ bool Raven_Steering::AccumulateForce(Vector2D &RunningTot,
 //  and acumulates their forces until the max steering force magnitude
 //  is reached, at which time the function returns the steering force 
 //  accumulated to that  point
+//(原文注释翻译:按优先级顺序调每个开启的行为,累加力直到达到上限)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// CalculatePrioritized:按 避墙→分离→seek→arrive→wander 顺序累加,力用完就返回。
 Vector2D Raven_Steering::CalculatePrioritized()
 {       
   Vector2D force;
@@ -207,7 +227,10 @@ Vector2D Raven_Steering::CalculatePrioritized()
 //
 //  Given a target, this behavior returns a steering force which will
 //  direct the agent towards the target
+//(原文注释翻译:给定目标,返回一个朝目标的转向力)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Seek(直冲):期望速度=指向目标的单位向量*最大速度;减去当前速度=转向力。
 Vector2D Raven_Steering::Seek(const Vector2D &target)
 {
  
@@ -222,7 +245,10 @@ Vector2D Raven_Steering::Seek(const Vector2D &target)
 //
 //  This behavior is similar to seek but it attempts to arrive at the
 //  target with a zero velocity
+//(原文注释翻译:类似 seek,但到达目标时速度减到 0)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Arrive(减速到达):离目标越近,期望速度越小,保证到点时停下。
 Vector2D Raven_Steering::Arrive(const Vector2D    &target,
                                 const Deceleration deceleration)
 {
@@ -260,7 +286,10 @@ Vector2D Raven_Steering::Arrive(const Vector2D    &target,
 //--------------------------- Wander -------------------------------------
 //
 //  This behavior makes the agent wander about randomly
+//(原文注释:让机器人随机闲逛)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Wander(闲逛):在前方一个圆上随机挑一个点,朝那个点走。
 Vector2D Raven_Steering::Wander()
 { 
   //first, add a small random vector to the target's position
@@ -292,7 +321,11 @@ Vector2D Raven_Steering::Wander()
 //
 //  This returns a steering force that will keep the agent away from any
 //  walls it may encounter
+//(原文注释翻译:返回一个转向力,让机器人远离遇到的墙)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// WallAvoidance(避墙):向前伸 3 条触角射线,看先碰到哪面墙,
+//   沿墙法线方向推一个力把机器人推开。
 Vector2D Raven_Steering::WallAvoidance(const vector<Wall2D*> &walls)
 {
   //the feelers are contained in a std::vector, m_Feelers
@@ -355,7 +388,9 @@ Vector2D Raven_Steering::WallAvoidance(const vector<Wall2D*> &walls)
 //------------------------------- CreateFeelers --------------------------
 //
 //  Creates the antenna utilized by WallAvoidance
+//(原文注释:创建避墙用的天线触角)
 //------------------------------------------------------------------------
+// CreateFeelers:画 3 条触角——正前、左后、右后。
 void Raven_Steering::CreateFeelers()
 {
   //feeler pointing straight in front
@@ -377,7 +412,10 @@ void Raven_Steering::CreateFeelers()
 //---------------------------- Separation --------------------------------
 //
 // this calculates a force repelling from the other neighbors
+//(原文注释:计算一个把机器人从其他邻居推开的力)
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Separation(分离):对每个附近同伴,加一个「离它越近、推力越大」的反向力。
 Vector2D Raven_Steering::Separation(const std::list<Raven_Bot*>& neighbors)
 {  
   //iterate through all the neighbors and calculate the vector from the

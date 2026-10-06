@@ -1,3 +1,15 @@
+﻿//==============================================================================================
+//【文件说明】cpp_using_lua/main.cpp —— "C++ 主动从 Lua 脚本里取数据/调函数"
+//
+//【这个小演示干什么?】
+//  运行 cpp_using_lua.lua 后,C++ 通过 Lua 的"栈"依次:① 取出全局变量 age/name;
+//  ② 取出表里 simple_table.name/age;③ 调用 Lua 函数 add(5,8) 拿回结果。
+//  演示 C++ 侧如何读 Lua 写的数据、如何调用 Lua 定义的函数。
+//
+//【文件地图】本目录只有 main.cpp;LuaHelperFunctions.h 提供 RunLuaScript 小工具;
+//  lua.h 等来自第三方库 Common\lua-5.1.5。脚本 cpp_using_lua.lua 与 exe 同目录。
+//【调用流程】main → lua_open/打开库 → RunLuaScript 跑脚本 → 三次"取栈上数据"演示 → lua_close。
+//==============================================================================================
 extern "C"
 {
   #include <lua.h>
@@ -17,6 +29,7 @@ using namespace std;
 
 
 
+// lua_State* pL:Lua 实例。lua_settop(pL,0)=清空栈,重新开始摆放要取的变量。
 int main()
 {
   //create a lua state
@@ -56,6 +69,9 @@ int main()
 
 
 
+// ---- 第 1 段:读全局变量 age/name ----
+// lua_getglobal 把全局变量压到栈上;lua_isnumber/isstring 验类型;
+// lua_tostring/lua_tonumber 真正取值。栈下标从 1 开始(注意不是 0)。
   cout << "\n\n[C++]:  2. Retrieving simple table";
 
 
@@ -109,6 +125,9 @@ int main()
 
  
 
+// ---- 第 2 段:读表 simple_table ----
+// lua_getglobal 把表压栈;再 push 键名 "name",用 lua_gettable 按键取值;
+// 用完 lua_pop 弹出,保持栈整洁。-1 表示栈顶(倒数第一)。
    cout << "\n\n[C++]: 3. Calling a simple Lua function: add(a,b)";
 
    //get the function from the global table and push it on the stack
@@ -139,6 +158,9 @@ int main()
 
 
   
+// ---- 第 3 段:调用 Lua 函数 add(5,8) ----
+// 先把 add 函数压栈,再依次压两个参数,lua_call(pL,2,1)="2 个参数、要 1 个返回值";
+// 返回值留在栈顶,lua_tonumber 取回。这是"C++ 调 Lua 函数"的标准套路。
   //tidy up
   lua_close(pL);
 

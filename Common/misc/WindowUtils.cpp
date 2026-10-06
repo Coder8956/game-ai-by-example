@@ -1,3 +1,10 @@
+﻿//==============================================================================================
+//【文件说明】WindowUtils.cpp —— 窗口小工具的实现
+//  ChangeMenuState/CheckMenuItemAppropriately:菜单勾选状态;
+//  ErrorBox:弹错误框;GetClientCursorPosition:鼠标坐标转 Vector2D;
+//  FileOpenDlg/FileSaveDlg:标准打开/保存文件对话框;
+//  ResizeWindow:按客户区大小反推窗口大小并居中;GetWindowHeight/Width:读窗口尺寸。
+//==============================================================================================
 #include "misc/WindowUtils.h"
 #include <windows.h>
 #include "2d/Vector2D.h"
@@ -11,6 +18,7 @@
 //  Changes the state of a menu item given the item identifier, the 
 //  desired state and the HWND of the menu owner
 //------------------------------------------------------------------------
+  // 用 MENUITEMINFO 改菜单项状态并重绘菜单栏。
 void ChangeMenuState(HWND hwnd, UINT MenuItem, UINT state)
 {
   MENUITEMINFO mi;
@@ -46,6 +54,7 @@ void CheckMenuItemAppropriately(HWND hwnd, UINT MenuItem, bool b)
 //  platform SDK. See MSDN for details. Only ever used for checking toolbar
 //  strings
 //------------------------------------------------------------------------
+  // 检查字符串长度是否超 MaxLength(工具栏字符串用)。
 bool CheckBufferLength(char* buff, int MaxLength, int& BufferLength)
 {
   std::string s = ttos(buff);
@@ -60,6 +69,7 @@ bool CheckBufferLength(char* buff, int MaxLength, int& BufferLength)
   return true;
 }
 
+  // 两版 ErrorBox:MessageBox 弹窗。
 void ErrorBox(std::string& msg)
 {
   MessageBox(NULL, msg.c_str(), "Error", MB_OK);
@@ -71,6 +81,7 @@ void ErrorBox(char* msg)
 }
 
 //gets the coordinates of the cursor relative to an active window 
+  // 取鼠标屏幕坐标并换算成客户区坐标,再转成 Vector2D。
 Vector2D GetClientCursorPosition()
 {
   POINT MousePos;
@@ -100,6 +111,7 @@ Vector2D GetClientCursorPosition(HWND hwnd)
 //  The following 3 functions are taken from Petzold's book and enable the 
 //  client to use the file dialog common control
 //-----------------------------------------------------------------------------
+  // 初始化 OPENFILENAME 结构(过滤串、默认扩展名等);FileOpenDlg/FileSaveDlg 调它后弹标准对话框。
 void FileInitialize (HWND hwnd,
                      OPENFILENAME& ofn,
                      const std::string& defaultFileTypeDescription,
@@ -178,6 +190,7 @@ BOOL FileSaveDlg (HWND               hwnd,
 //
 //  call this to resize the active window to the specified size
 //-----------------------------------------------------------------------------
+  // 按期望客户区大小 AdjustWindowRectEx 反推整窗尺寸,SetWindowPos 居中放置。
 void ResizeWindow(HWND hwnd, int cx, int cy)
 {
   //does this window have a menu. If so set a flag to true
@@ -210,6 +223,7 @@ void ResizeWindow(HWND hwnd, int cx, int cy)
 
 //------------------------- GetWindowHeight -----------------------------------
 //-----------------------------------------------------------------------------
+  // 用 GetWindowRect 取矩形,bottom-top / right-left 得高/宽。
 int  GetWindowHeight(HWND hwnd)
 {
   if (hwnd == 0) return 0;

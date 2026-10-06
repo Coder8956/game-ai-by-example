@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】triggers\Trigger_HealthGiver.cpp —— 加血包触发器的实现
+//==============================================================================================
 #include "Trigger_HealthGiver.h"
 #include "misc/Cgdi.h"
 #include "misc/Stream_Utility_Functions.h"
@@ -8,6 +11,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// 构造函数:调基类,Read 从文件读参数。
 Trigger_HealthGiver::Trigger_HealthGiver(std::ifstream& datafile):
       
      Trigger_Respawning<Raven_Bot>(GetValueFromStream<int>(datafile))
@@ -16,6 +20,7 @@ Trigger_HealthGiver::Trigger_HealthGiver(std::ifstream& datafile):
 }
 
 
+// Try:激活状态且 pBot 踩到?就加血、然后 Deactivate(等重生)。
 void Trigger_HealthGiver::Try(Raven_Bot* pBot)
 {
   if (isActive() && isTouchingTrigger(pBot->Pos(), pBot->BRadius()))
@@ -27,6 +32,7 @@ void Trigger_HealthGiver::Try(Raven_Bot* pBot)
 }
 
 
+// Render:激活时画个白底红十字。
 void Trigger_HealthGiver::Render()
 {
   if (isActive())
@@ -42,6 +48,7 @@ void Trigger_HealthGiver::Render()
 }
 
 
+// Read:从文件读位置/半径/加血量/导航图节点索引,设触发区和重生延迟。
 void Trigger_HealthGiver::Read(std::ifstream& in)
 {
   double x, y, r;

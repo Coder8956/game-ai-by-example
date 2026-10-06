@@ -1,3 +1,11 @@
+﻿//==============================================================================================
+//【文件说明】FuzzyVariable.cpp —— 模糊语言变量的实现
+//
+//【核心三件事】
+//  Fuzzify(val)      :给真实值,算它在每个集合里的隶属度;
+//  DeFuzzifyMaxAv()  :最大平均法去模糊——输出 = Σ(代表值×隶属度)/Σ隶属度;
+//  DeFuzzifyCentroid():重心法——把范围切成 NumSamples 段,累加面积和力矩,力矩/面积=重心。
+//【谁包含它】fuzzy/fuzzyvariable.h。
 #include "fuzzy/fuzzyvariable.h"
 #include "fuzzy/fuzzyoperators.h"
 #include "fuzzy/FuzzySet_triangle.h"
@@ -12,6 +20,8 @@
 
 //------------------------------ dtor -----------------------------------------
 //-----------------------------------------------------------------------------
+//------------------------------ 析构函数 -----------------------------------------
+// ~FuzzyVariable:遍历字典,把每个 new 出来的模糊集合 delete 掉。
 FuzzyVariable::~FuzzyVariable()
 {
   MemberSets::iterator it;
@@ -26,6 +36,9 @@ FuzzyVariable::~FuzzyVariable()
 //  takes a crisp value and calculates its degree of membership for each set
 //  in the variable.
 //-----------------------------------------------------------------------------
+//--------------------------- Fuzzify 模糊化 -----------------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:拿一个精确值,算出它在本变量每个集合里的隶属度。
+// Fuzzify:先断言 val 在范围内;然后对每个集合:SetDOM(CalculateDOM(val))。
 void FuzzyVariable::Fuzzify(double val)
 {    
   //make sure the value is within the bounds of this variable
@@ -47,6 +60,9 @@ void FuzzyVariable::Fuzzify(double val)
 //
 // OUTPUT = sum (maxima * DOM) / sum (DOMs) 
 //-----------------------------------------------------------------------------
+//--------------------------- DeFuzzifyMaxAv 最大平均法 ---------------------------------
+// ↓↓↓ 上面三行英文注释的翻译:把所有被触发集合的"最大值"按隶属度加权平均。
+//   公式:输出 = Σ(代表值×DOM) / Σ(DOM)。bottom=分母,DOM 之和;top=分子。
 double FuzzyVariable::DeFuzzifyMaxAv()const
 {
   double bottom = 0.0;
@@ -70,6 +86,9 @@ double FuzzyVariable::DeFuzzifyMaxAv()const
 //
 //  defuzzify the variable using the centroid method
 //-----------------------------------------------------------------------------
+//------------------------- DeFuzzifyCentroid 重心法 ---------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:用重心法去模糊。把范围等分成 NumSamples 段,
+//   逐段累加面积(TotalArea)和力矩(SumOfMoments),力矩÷面积=重心(像求物体质心)。
 double FuzzyVariable::DeFuzzifyCentroid(int NumSamples)const
 {
   //calculate the step size
@@ -116,6 +135,9 @@ double FuzzyVariable::DeFuzzifyCentroid(int NumSamples)const
 //
 //  adds a triangular shaped fuzzy set to the variable
 //-----------------------------------------------------------------------------
+//------------------------- AddTriangularSet 添加三角形集合 ---------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:往变量里加一个三角形模糊集合。
+// new 出三角集合存进字典[名字],调整范围,返回 FzSet 代理。
 FzSet FuzzyVariable::AddTriangularSet(std::string name,
                                      double       minBound,
                                      double       peak,
@@ -134,6 +156,8 @@ FzSet FuzzyVariable::AddTriangularSet(std::string name,
 //
 //  adds a left shoulder type set
 //-----------------------------------------------------------------------------
+//--------------------------- AddLeftShoulder 添加左肩集合 ---------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:加一个左肩形集合。
 FzSet FuzzyVariable::AddLeftShoulderSet(std::string name,
                                         double       minBound,
                                         double       peak,
@@ -152,6 +176,8 @@ FzSet FuzzyVariable::AddLeftShoulderSet(std::string name,
 //
 //  adds a left shoulder type set
 //-----------------------------------------------------------------------------
+//--------------------------- AddRightShoulder 添加右肩集合 ---------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:加一个右肩形集合(原文注释里误写成 left shoulder)。
 FzSet FuzzyVariable::AddRightShoulderSet(std::string name,
                                          double       minBound,
                                          double       peak,
@@ -170,6 +196,8 @@ FzSet FuzzyVariable::AddRightShoulderSet(std::string name,
 //
 //  adds a singleton to the variable
 //-----------------------------------------------------------------------------
+//--------------------------- AddSingletonSet 添加单点集合 ---------------------------------
+// ↓↓↓ 上面两行英文注释的翻译:往变量里加一个单点集合。
 FzSet FuzzyVariable::AddSingletonSet(std::string name,
                                     double       minBound,
                                     double       peak,
@@ -189,6 +217,8 @@ FzSet FuzzyVariable::AddSingletonSet(std::string name,
 //  this method is called with the upper and lower bound of a set each time a
 //  new set is added to adjust the upper and lower range values accordingly
 //-----------------------------------------------------------------------------
+//---------------------------- AdjustRangeToFit 调整范围 -------------------------------
+// ↓↓↓ 上面三行英文注释的翻译:每次加新集合,用它的上下界把整体取值范围撑大。
 void FuzzyVariable::AdjustRangeToFit(double minBound, double maxBound)
 {
   if (minBound < m_dMinRange) m_dMinRange = minBound;
@@ -196,6 +226,8 @@ void FuzzyVariable::AdjustRangeToFit(double minBound, double maxBound)
 }
 
 //---------------------------- WriteDOMs --------------------------------------
+//---------------------------- WriteDOMs 打印各集合隶属度 -------------------------------
+// 把每个集合名、当前隶属度,以及整体范围,写到输出流 os(调试用)。
 std::ostream& FuzzyVariable::WriteDOMs(std::ostream& os)
 {
   MemberSets::iterator it;

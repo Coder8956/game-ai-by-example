@@ -1,5 +1,19 @@
+﻿//==============================================================================================
+//【文件说明】Smoother.h —— 滑动平均模板(给数值/向量做平滑)
+//
+//【这个文件是干什么的?】
+//  维护一个 SampleSize 大小的历史环形缓冲区:每来一个新值就覆盖最旧的那个,
+//  然后返回所有历史值的平均。常用于平滑帧率、平滑转向向量,避免画面抖动。
+//  要求元素类型支持 += 和 / 运算(Vector2D 就支持)。
+//
+//【谁在使用这个文件?】
+//  Raven 的瞄准方向平滑、第 5 章演示程序的帧率统计。
+//==============================================================================================
 #ifndef SMOOTHER
 #define SMOOTHER
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 //------------------------------------------------------------------------
 //
 //  Name: Smoother.h
@@ -15,11 +29,16 @@
 //------------------------------------------------------------------------
 #include <vector>
 
+//--------------------------------------------------------------------------------
+// template <class T> —— 元素类型(可 double 也可 Vector2D)。
+// class Smoother —— 滑动平均器。
+//--------------------------------------------------------------------------------
 template <class T>
 class Smoother
 {
 private:
 
+  // m_History:历史环形数组;m_iNextUpdateSlot:下一个要覆盖的槽位;m_ZeroValue:类型零值。
   //this holds the history
   std::vector<T>  m_History;
 
@@ -33,6 +52,7 @@ public:
 
   //to instantiate a Smoother pass it the number of samples you want
   //to use in the smoothing, and an exampe of a 'zero' type
+  // 构造:指定缓冲大小和零值(用零值填满缓冲区,避免开头不平均)。
   Smoother(int SampleSize, T ZeroValue):m_History(SampleSize, ZeroValue),
                                         m_ZeroValue(ZeroValue),
                                         m_iNextUpdateSlot(0)
@@ -40,6 +60,10 @@ public:
 
   //each time you want to get a new average, feed it the most recent value
   //and this method will return an average over the last SampleSize updates
+//--------------------------------------------------------------------------------
+// Update:① 把新值写到当前槽,槽位 +1 并回卷(环形);
+// ② 遍历所有历史值累加,再除以个数返回平均值。
+//--------------------------------------------------------------------------------
   T Update(const T& MostRecentValue)
   {  
     //overwrite the oldest value with the newest

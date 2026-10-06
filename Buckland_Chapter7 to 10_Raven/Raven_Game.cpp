@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】Raven_Game.cpp —— 游戏主类的实现
+//==============================================================================================
 #include "Raven_Game.h"
 #include "Raven_ObjectEnumerations.h"
 #include "misc/WindowUtils.h"
@@ -34,6 +37,7 @@
 
 //----------------------------- ctor ------------------------------------------
 //-----------------------------------------------------------------------------
+// 构造函数:读默认地图。
 Raven_Game::Raven_Game():m_pSelectedBot(NULL),
                          m_bPaused(false),
                          m_bRemoveABot(false),
@@ -48,6 +52,7 @@ Raven_Game::Raven_Game():m_pSelectedBot(NULL),
 
 //------------------------------ dtor -----------------------------------------
 //-----------------------------------------------------------------------------
+// 析构函数:清理并 delete 各成员。
 Raven_Game::~Raven_Game()
 {
   Clear();
@@ -61,7 +66,9 @@ Raven_Game::~Raven_Game()
 //---------------------------- Clear ------------------------------------------
 //
 //  deletes all the current objects ready for a map load
+//(原文注释:删掉当前所有对象,为加载新地图做准备)
 //-----------------------------------------------------------------------------
+// Clear:删所有 bot、删所有子弹、清空列表。
 void Raven_Game::Clear()
 {
 #ifdef LOG_CREATIONAL_STUFF
@@ -103,7 +110,10 @@ void Raven_Game::Clear()
 //-------------------------------- Update -------------------------------------
 //
 //  calls the update function of each entity
+//(原文注释:调每个实体的 Update)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Update:每帧主循环——更新墓碑→玩家输入→寻路→门→子弹→bot(重生/死亡/活着)→触发器→删 bot。
 void Raven_Game::Update()
 { 
   //don't update if the user has paused the game
@@ -198,6 +208,7 @@ void Raven_Game::Update()
 
 //----------------------------- AttemptToAddBot -------------------------------
 //-----------------------------------------------------------------------------
+// AttemptToAddBot:找个空出生点把重生的 bot 放上去。
 bool Raven_Game::AttemptToAddBot(Raven_Bot* pBot)
 {
   //make sure there are some spawn points available
@@ -243,7 +254,9 @@ bool Raven_Game::AttemptToAddBot(Raven_Bot* pBot)
 //-------------------------- AddBots --------------------------------------
 //
 //  Adds a bot and switches on the default steering behavior
+//(原文注释:加一个 bot,打开默认转向行为)
 //-----------------------------------------------------------------------------
+// AddBots:new 出 N 个 bot,打开避墙/分离行为。
 void Raven_Game::AddBots(unsigned int NumBotsToAdd)
 { 
   while (NumBotsToAdd--)
@@ -273,7 +286,9 @@ void Raven_Game::AddBots(unsigned int NumBotsToAdd)
 //  when a bot is removed from the game by a user all remianing bots
 //  must be notifies so that they can remove any references to that bot from
 //  their memory
+//(原文注释翻译:用户删 bot 时通知所有其他 bot,从记忆里擦掉它)
 //-----------------------------------------------------------------------------
+// NotifyAllBotsOfRemoval:给所有 bot 发 Msg_UserHasRemovedBot 消息。
 void Raven_Game::NotifyAllBotsOfRemoval(Raven_Bot* pRemovedBot)const
 {
     std::list<Raven_Bot*>::const_iterator curBot = m_Bots.begin();
@@ -291,6 +306,7 @@ void Raven_Game::NotifyAllBotsOfRemoval(Raven_Bot* pRemovedBot)const
 //
 //  removes the last bot to be added from the game
 //-----------------------------------------------------------------------------
+// RemoveBot:标记要删一个(下帧 Update 真正删)。
 void Raven_Game::RemoveBot()
 {
   m_bRemoveABot = true;
@@ -298,6 +314,7 @@ void Raven_Game::RemoveBot()
 
 //--------------------------- AddBolt -----------------------------------------
 //-----------------------------------------------------------------------------
+// 下面 AddBolt/AddRocket/AddRailGunSlug/AddShotGunPellet:各种子弹 new 出来加进列表。
 void Raven_Game::AddBolt(Raven_Bot* shooter, Vector2D target)
 {
   Raven_Projectile* rp = new Bolt(shooter, target);
@@ -351,7 +368,9 @@ void Raven_Game::AddShotGunPellet(Raven_Bot* shooter, Vector2D target)
 //  given a position on the map this method returns the bot found with its
 //  bounding radius of that position.
 //  If there is no bot at the position the method returns NULL
+//(原文注释翻译:某位置上有 bot 吗?没有返回 NULL)
 //-----------------------------------------------------------------------------
+// GetBotAtPosition:某位置上的活 bot。
 Raven_Bot* Raven_Game::GetBotAtPosition(Vector2D CursorPos)const
 {
   std::list<Raven_Bot*>::const_iterator curBot = m_Bots.begin();
@@ -373,7 +392,9 @@ Raven_Bot* Raven_Game::GetBotAtPosition(Vector2D CursorPos)const
 //-------------------------------- LoadMap ------------------------------------
 //
 //  sets up the game environment from map file
+//(原文注释:从地图文件搭建游戏环境)
 //-----------------------------------------------------------------------------
+// LoadMap:清旧→new 墓碑/寻路管理器/地图→读地图→加 bot。
 bool Raven_Game::LoadMap(const std::string& filename)
 {  
   //clear any current bots and projectiles
@@ -408,7 +429,9 @@ bool Raven_Game::LoadMap(const std::string& filename)
 //------------------------- ExorciseAnyPossessedBot ---------------------------
 //
 //  when called will release any possessed bot from user control
+//(原文注释:调它把被接管的 bot 还给 AI)
 //-----------------------------------------------------------------------------
+// ExorciseAnyPossessedBot:人类离开接管。
 void Raven_Game::ExorciseAnyPossessedBot()
 {
   if (m_pSelectedBot) m_pSelectedBot->Exorcise();
@@ -424,7 +447,9 @@ void Raven_Game::ExorciseAnyPossessedBot()
 //
 //  if the cursor is not over a bot then any selected bot/s will attempt to
 //  move to that position.
+//(原文注释翻译:右键逻辑:点中 bot 就选中/接管;点空地就指挥 bot 过去)
 //-----------------------------------------------------------------------------
+// ClickRightMouseButton:右键——选 bot/接管/指挥移动。
 void Raven_Game::ClickRightMouseButton(POINTS p)
 {
   Raven_Bot* pBot = GetBotAtPosition(POINTStoVector(p));
@@ -474,6 +499,7 @@ void Raven_Game::ClickRightMouseButton(POINTS p)
 
 //---------------------- ClickLeftMouseButton ---------------------------------
 //-----------------------------------------------------------------------------
+// ClickLeftMouseButton:左键——人类接管的 bot 开火。
 void Raven_Game::ClickLeftMouseButton(POINTS p)
 {
   if (m_pSelectedBot && m_pSelectedBot->isPossessed())
@@ -486,7 +512,9 @@ void Raven_Game::ClickLeftMouseButton(POINTS p)
 //
 //  if a bot is possessed the keyboard is polled for user input and any 
 //  relevant bot methods are called appropriately
+//(原文注释翻译:bot 被接管时,轮询键盘输入,调对应方法)
 //-----------------------------------------------------------------------------
+// GetPlayerInput:人类接管时,把脸转向鼠标。
 void Raven_Game::GetPlayerInput()const
 {
   if (m_pSelectedBot && m_pSelectedBot->isPossessed())
@@ -500,6 +528,7 @@ void Raven_Game::GetPlayerInput()const
 //
 //  changes the weapon of the possessed bot
 //-----------------------------------------------------------------------------
+// ChangeWeaponOfPossessedBot:人类换武器。
 void Raven_Game::ChangeWeaponOfPossessedBot(unsigned int weapon)const
 {
   //ensure one of the bots has been possessed
@@ -531,6 +560,7 @@ void Raven_Game::ChangeWeaponOfPossessedBot(unsigned int weapon)const
 //
 //  returns true if the ray between A and B is unobstructed.
 //------------------------------------------------------------------------------
+// isLOSOkay:两点间视线被墙挡吗?doWallsObstructLineSegment 测。
 bool Raven_Game::isLOSOkay(Vector2D A, Vector2D B)const
 {
   return !doWallsObstructLineSegment(A, B, m_pMap->GetWalls());
@@ -542,7 +572,9 @@ bool Raven_Game::isLOSOkay(Vector2D A, Vector2D B)const
 //  world geometry. It achieves this by stepping from A to B in steps of
 //  size BoundingRadius and testing for intersection with world geometry at
 //  each point.
+//(原文注释翻译:从 A 一步步走到 B,每步测会不会撞墙)
 //-----------------------------------------------------------------------------
+// isPathObstructed:一步步挪,每步测圆会不会撞墙。
 bool Raven_Game::isPathObstructed(Vector2D A,
                                   Vector2D B,
                                   double    BoundingRadius)const
@@ -570,8 +602,10 @@ bool Raven_Game::isPathObstructed(Vector2D A,
 //----------------------------- GetAllBotsInFOV ------------------------------
 //
 //  returns a vector of pointers to bots within the given bot's field of view
+//(原文注释:返回某 bot 视野内所有 bot 的指针列表)
 //-----------------------------------------------------------------------------
 std::vector<Raven_Bot*>
+// GetAllBotsInFOV:遍历所有 bot,在视野内且无遮挡的挑出来。
 Raven_Game::GetAllBotsInFOV(const Raven_Bot* pBot)const
 {
   std::vector<Raven_Bot*> VisibleBots;
@@ -606,6 +640,7 @@ Raven_Game::GetAllBotsInFOV(const Raven_Bot* pBot)const
 //---------------------------- isSecondVisibleToFirst -------------------------
 
 bool
+// isSecondVisibleToFirst:第二个 bot 在第一个视野内且无遮挡?
 Raven_Game::isSecondVisibleToFirst(const Raven_Bot* pFirst,
                                    const Raven_Bot* pSecond)const
 {
@@ -636,8 +671,10 @@ Raven_Game::isSecondVisibleToFirst(const Raven_Bot* pFirst,
 //
 //  returns the position of the closest visible switch that triggers the
 //  door of the specified ID
+//(原文注释翻译:返回能开指定 ID 门的最近可见按钮位置)
 //-----------------------------------------------------------------------------
 Vector2D 
+// GetPosOfClosestSwitch:找最近可见的按钮。
 Raven_Game::GetPosOfClosestSwitch(Vector2D botPos, unsigned int doorID)const
 {
   std::vector<unsigned int> SwitchIDs;
@@ -684,6 +721,7 @@ Raven_Game::GetPosOfClosestSwitch(Vector2D botPos, unsigned int doorID)const
     
 //--------------------------- Render ------------------------------------------
 //-----------------------------------------------------------------------------
+// Render:画墓碑→地图→所有 bot(或只画选中 bot 视野内的)→子弹→选中圈→各种调试信息。
 void Raven_Game::Render()
 {
   m_pGraveMarkers->Render();

@@ -1,3 +1,13 @@
+﻿//==============================================================================================
+//【文件说明】Raven_Bot.cpp —— 机器人本体的实现
+//
+//【一次完整执行里,一个 bot 在干嘛?】
+//  游戏每帧调 bot->Update():
+//    1. m_pBrain->Process()       —— 跑当前目标(goals 目录,不在本分片)
+//    2. UpdateMovement()          —— 算转向力,改速度位置
+//    3. (AI 控制时)按频率:选目标 / 目标仲裁 / 更新视野 / 选武器
+//    4. m_pWeaponSys->TakeAimAndShoot() —— 瞄准并射击
+//==============================================================================================
 #include "Raven_Bot.h"
 #include "misc/Cgdi.h"
 #include "misc/utils.h"
@@ -23,6 +33,7 @@
 #include "Debug/DebugConsole.h"
 
 //-------------------------- ctor ---------------------------------------------
+// 构造函数:从脚本读参数初始化父类 MovingEntity,然后 new 出所有子系统。
 Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
 
   MovingEntity(pos,
@@ -85,6 +96,7 @@ Raven_Bot::Raven_Bot(Raven_Game* world,Vector2D pos):
 
 //-------------------------------- dtor ---------------------------------------
 //-----------------------------------------------------------------------------
+// 析构函数:把所有 new 出来的子系统 delete 掉。
 Raven_Bot::~Raven_Bot()
 {
   debug_con << "deleting raven bot (id = " << ID() << ")" << "";
@@ -105,7 +117,9 @@ Raven_Bot::~Raven_Bot()
 //------------------------------- Spawn ---------------------------------------
 //
 //  spawns the bot at the given position
+//(原文注释:在指定位置生成机器人)
 //-----------------------------------------------------------------------------
+// Spawn:在某位置重生——清目标/清子目标/满血/给一把 blaster。
 void Raven_Bot::Spawn(Vector2D pos)
 {
     SetAlive();
@@ -118,11 +132,14 @@ void Raven_Bot::Spawn(Vector2D pos)
 
 //-------------------------------- Update -------------------------------------
 //
+//--------------------------------------------------------------------------------
+// Update:每帧主循环,见文件头说明。
 void Raven_Bot::Update()
 {
   //process the currently active goal. Note this is required even if the bot
   //is under user control. This is because a goal is created whenever a user 
   //clicks on an area of the map that necessitates a path planning request.
+//(原文注释翻译:每帧处理当前活跃目标;即使用户控制也要跑,因为用户点地图会触发寻路)
   m_pBrain->Process();
   
   //Calculate the steering force and update the bot's velocity and position
@@ -168,7 +185,10 @@ void Raven_Bot::Update()
 //
 //  this method is called from the update method. It calculates and applies
 //  the steering force for this time-step.
+//(原文注释翻译:计算并应用这一帧的转向力)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// UpdateMovement:取转向力,按 F=ma 改速度,限最大速度,更新位置,更新朝向。
 void Raven_Bot::UpdateMovement()
 {
   //calculate the combined steering force
@@ -207,7 +227,9 @@ void Raven_Bot::UpdateMovement()
 //---------------------------- isReadyForTriggerUpdate ------------------------
 //
 //  returns true if the bot is ready to be tested against the world triggers
+//(原文注释翻译:机器人是否到了要测触发器的频率)
 //-----------------------------------------------------------------------------
+// isReadyForTriggerUpdate:触发器测试频率到了吗?
 bool Raven_Bot::isReadyForTriggerUpdate()const
 {
   return m_pTriggerTestRegulator->isReady();
@@ -215,6 +237,10 @@ bool Raven_Bot::isReadyForTriggerUpdate()const
 
 //--------------------------- HandleMessage -----------------------------------
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// HandleMessage:处理消息。先让脑处理;剩下的自己接:
+//   Msg_TakeThatMF(挨打)、Msg_YouGotMeYouSOB(打死别人)、
+//   Msg_GunshotSound(听见枪声)、Msg_UserHasRemovedBot(某 bot 被删)。
 bool Raven_Bot::HandleMessage(const Telegram& msg)
 {
   //first see if the current goal accepts the message
@@ -287,7 +313,10 @@ bool Raven_Bot::HandleMessage(const Telegram& msg)
 //  directly faces the target.
 //
 //  returns true when the heading is facing in the desired direction
+//(原文注释翻译:转向直到对准目标;角度小于容差返回 true)
 //----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// RotateFacingTowardPosition:每帧最多转 maxTurnRate 角度,直到对准目标。
 bool Raven_Bot::RotateFacingTowardPosition(Vector2D target)
 {
   Vector2D toTarget = Vec2DNormalize(target - m_vPosition);
@@ -329,6 +358,7 @@ bool Raven_Bot::RotateFacingTowardPosition(Vector2D target)
 
 
 //--------------------------------- ReduceHealth ----------------------------
+// ReduceHealth:扣血,扣到 0 就死;打红圈标记。
 void Raven_Bot::ReduceHealth(unsigned int val)
 {
   m_iHealth -= val;
@@ -346,7 +376,9 @@ void Raven_Bot::ReduceHealth(unsigned int val)
 //--------------------------- Possess -----------------------------------------
 //
 //  this is called to allow a human player to control the bot
+//(原文注释:让人类玩家接管机器人控制)
 //-----------------------------------------------------------------------------
+// TakePossession:人类接管;Exorcise:人类离开,AI 重新接管并去探索。
 void Raven_Bot::TakePossession()
 {
   if ( !(isSpawning() || isDead()))
@@ -372,6 +404,7 @@ void Raven_Bot::Exorcise()
 
 
 //----------------------- ChangeWeapon ----------------------------------------
+// ChangeWeapon/FireWeapon:人类接口,转发给武器系统。
 void Raven_Bot::ChangeWeapon(unsigned int type)
 {
   m_pWeaponSys->ChangeWeapon(type);
@@ -391,7 +424,9 @@ void Raven_Bot::FireWeapon(Vector2D pos)
 //
 //  returns a value indicating the time in seconds it will take the bot
 //  to reach the given position at its current speed.
+//(原文注释翻译:以当前速度走到某点要几秒)
 //-----------------------------------------------------------------------------
+// CalculateTimeToReachPosition:距离/速度;isAtPosition:离某点够近吗?
 double Raven_Bot::CalculateTimeToReachPosition(Vector2D pos)const
 {
   return Vec2DDistance(Pos(), pos) / (MaxSpeed() * FrameRate);
@@ -412,6 +447,7 @@ bool Raven_Bot::isAtPosition(Vector2D pos)const
 //
 //  returns true if the bot has line of sight to the given position.
 //-----------------------------------------------------------------------------
+// hasLOSto:两点间有视线吗?canWalkTo:能直接走吗?canWalkBetween:两点间能走通吗?
 bool Raven_Bot::hasLOSto(Vector2D pos)const
 {
   return m_pWorld->isLOSOkay(Pos(), pos);
@@ -435,7 +471,9 @@ bool Raven_Bot::canWalkBetween(Vector2D from, Vector2D to)const
 //
 //  returns true if there is space enough to step in the indicated direction
 //  If true PositionOfStep will be assigned the offset position
+//(原文注释翻译:朝某方向迈一步有空间吗?有就把落点写进 PositionOfStep)
 //-----------------------------------------------------------------------------
+// canStepLeft/Right/Forward/Backward:四方向能否迈步(算个偏移点再调 canWalkTo)。
 bool Raven_Bot::canStepLeft(Vector2D& PositionOfStep)const
 {
   static const double StepDistance = BRadius() * 2;
@@ -475,6 +513,8 @@ bool Raven_Bot::canStepBackward(Vector2D& PositionOfStep)const
 //--------------------------- Render -------------------------------------
 //
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Render:画机器人外形三角形、头、武器;被打中画红圈;可选画 ID/血/分。
 void Raven_Bot::Render()                                         
 {
   //when a bot is hit by a projectile this value is set to a constant user
@@ -538,6 +578,7 @@ void Raven_Bot::Render()
 
 //------------------------- SetUpVertexBuffer ---------------------------------
 //-----------------------------------------------------------------------------
+// SetUpVertexBuffer:初始化机器人外形 4 个顶点,算包围半径。
 void Raven_Bot::SetUpVertexBuffer()
 {
   //setup the vertex buffers and calculate the bounding radius
@@ -570,6 +611,7 @@ void Raven_Bot::SetUpVertexBuffer()
 
 
 
+// RestoreHealthToMaximum:回满血;IncreaseHealth:加血(钳制在 0~满血)。
 void Raven_Bot::RestoreHealthToMaximum(){m_iHealth = m_iMaxHealth;}
 
 void Raven_Bot::IncreaseHealth(unsigned int val)

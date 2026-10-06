@@ -1,3 +1,17 @@
+﻿//==============================================================================================
+//【文件说明】ScriptedStateMachine/main.cpp —— 第 6 章压轴:"用 Lua 脚本驱动的矿工状态机"
+//
+//【这个小演示干什么?】
+//  复刻第 2 章矿工 Bob,但状态逻辑(挖矿/存钱/睡觉)全写在 Lua 脚本
+//  StateMachineScript.lua 里。C++ 侧先用 luabind 把 Entity/Miner/状态机三类的方法注册给 Lua,
+//  跑脚本后创建矿工 bob,把他的初始状态设成脚本里的 State_GoHome,再循环 Update 10 步——
+//  每一步具体干什么,由 Lua 脚本里当前状态的 Execute 决定。
+//
+//【文件地图】main.cpp + Miner.h/.cpp(矿工)+ Entity.h(对象基类)+ ScriptedStateMachine.h(状态机模板);
+//  luabind 来自第三方库 Common\luabind,Lua 来自 Common\lua-5.1.5。
+//【调用流程】main → 注册三类到 Lua → RunLuaScript 定义好各状态 → new Miner bob →
+//           从 globals 取出状态表 → SetCurrentState(回家)→ for 10 次 bob.Update()。
+//==============================================================================================
 //include the libraries
 #pragma comment(lib, "lua5.1.lib")
 #pragma comment(lib, "luabind.lib")
@@ -27,6 +41,8 @@ using namespace luabind;
 #include "ScriptedStateMachine.h"
 
 
+// 下面三个 Register*WithLua:分别用 luabind 把 状态机类 / Entity 基类 / Miner 子类
+// 的方法(.def)导出给 Lua,脚本才能调用它们。Miner 用 bases<Entity> 声明继承。
 void RegisterScriptedStateMachineWithLua(lua_State* pLua)
 {
   module(pLua)
@@ -70,6 +86,7 @@ void RegisterMinerWithLua(lua_State* pLua)
 
 
 
+// LuaExceptionGuard guard:RAII 守护对象,离开作用域时自动检查 Lua 异常(本书工具)。
 int main()
 {
   //create a lua state
@@ -92,6 +109,7 @@ int main()
   //load and run the script
   RunLuaScript(pLua, "StateMachineScript.lua");
   
+// globals(pLua) 取出 Lua 的全局表,里面装着脚本定义的所有状态函数/变量。
   //create a miner
   Miner bob("bob");
 
@@ -105,6 +123,8 @@ int main()
   {
     //make sure Bob's CurrentState object is set to a valid state.
     bob.GetFSM()->SetCurrentState(states["State_GoHome"]);
+// SetCurrentState(脚本里的 State_GoHome):把矿工初始状态设成"回家";
+// 随后 for 循环 10 次 bob.Update(),每帧由当前状态的 Lua Execute 驱动矿工行动。
 
     //run him through a few update cycles
     for (int i=0; i<10; ++i)

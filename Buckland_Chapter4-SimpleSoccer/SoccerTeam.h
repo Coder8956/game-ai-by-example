@@ -1,3 +1,29 @@
+﻿//==============================================================================================
+//【文件说明】SoccerTeam.h —— 一支足球队(球队级有限状态机)
+//
+//【这个文件是干什么的?】
+//  一支球队 = 5 名球员(4 名场上 + 1 名门将)+ 本方球门 + 对方球门 + 状态机。
+//  球队本身也是一个有限状态机(StateMachine<SoccerTeam>):在"开球/进攻/防守"
+//  等状态间切换,并统管"谁控球、谁接应、谁接球、谁离球最近"等关键信息。
+//  射门 CanShoot、传球 FindPass/IsPassSafe、找接应点 DetermineBestSupportingAttacker
+//  这些球队战术决策函数都在本类声明、在 SoccerTeam.cpp 实现。
+//
+//【谁在使用这个文件?】
+//  SoccerPitch.cpp —— new 出红、蓝两支球队;
+//  PlayerBase.cpp/.h、FieldPlayer、Goalkeeper、各状态文件、SupportSpotCalculator.cpp
+//  —— 球员随时问球队"球在哪/谁控球/我队友是谁"。
+//
+//【本文件包含了谁?】
+//  <vector>、Game/Region.h、SupportSpotCalculator.h、FSM/StateMachine.h。
+//
+//【C++ 小课堂:StateMachine<SoccerTeam> 模板】
+//  StateMachine 是个泛型状态机模板,尖括号里填 SoccerTeam 表示"这是管 SoccerTeam 的状态机";
+//  它帮球队记录"当前处于哪个状态",并把每帧 Update 转发给当前状态的 Execute。
+//  球队的具体状态类在 TeamStates.h/.cpp(开球/进攻/防守)。
+//==============================================================================================
+//--------------------------------------------------------------------------------
+// 包含保护 + #pragma warning(disable:4786):原理见 Goal.h 与 SoccerPitch.h。
+//--------------------------------------------------------------------------------
 #ifndef SOCCERTEAM_H
 #define SOCCERTEAM_H
 #pragma warning (disable:4786)
@@ -12,6 +38,12 @@
 //          attacking, defending, and KickOff.
 //
 //  Author: Mat Buckland 2003 (fup@ai-junkie.com)
+//------------------------------------------------------------------------
+// ↓↓↓ 原作者说明的翻译:
+//   文件名:SoccerTeam.h
+//   描述  :定义一支由智能体球员组成的足球队。一支球队含若干场上球员和一名守门员;
+//          球队实现为有限状态机,有进攻、防守、开球等状态。
+//   作者  :Mat Buckland,2003 年(本书作者)
 //
 //------------------------------------------------------------------------
 
@@ -21,6 +53,7 @@
 #include "SupportSpotCalculator.h"
 #include "FSM/StateMachine.h"
 
+// 前置声明:Goal/PlayerBase/FieldPlayer/SoccerPitch/GoalKeeper 等只以指针形式出现。
 class Goal;
 class PlayerBase;
 class FieldPlayer;
@@ -32,6 +65,9 @@ class SupportSpotCalculator;
 
 
                 
+//--------------------------------------------------------------------------------
+// class SoccerTeam —— 球队类。enum team_color{blue,red} 枚举球队颜色。
+//--------------------------------------------------------------------------------
 class SoccerTeam 
 {
 public:
@@ -41,18 +77,22 @@ public:
 private:
 
    //an instance of the state machine class
+//(原文注释:状态机类的一个实例)—— m_pStateMachine 掌管球队当前处于哪个战术状态。
   StateMachine<SoccerTeam>*  m_pStateMachine;
 
   //the team must know its own color!
+//(原文注释:球队必须知道自己的颜色!)
   team_color                m_Color;
 
   //pointers to the team members
+//(原文注释:球队成员指针列表)—— m_Players 是装着 5 名球员指针的 vector。
   std::vector<PlayerBase*>  m_Players;
 
   //a pointer to the soccer pitch
   SoccerPitch*              m_pPitch;
 
   //pointers to the goals
+//(原文注释:本方球门与对方球门指针)
   Goal*                     m_pOpponentsGoal;
   Goal*                     m_pHomeGoal;
   
@@ -60,18 +100,23 @@ private:
   SoccerTeam*               m_pOpponents;
    
   //pointers to 'key' players
+//(原文注释:几个"关键球员"指针)——控球者/接应者/接球者/离球最近者。
   PlayerBase*               m_pControllingPlayer;
   PlayerBase*               m_pSupportingPlayer;
   PlayerBase*               m_pReceivingPlayer;
   PlayerBase*               m_pPlayerClosestToBall;
 
   //the squared distance the closest player is from the ball
+//(原文注释:离球最近的本队球员到球的距离的平方)
   double                     m_dDistSqToBallOfClosestPlayer;
 
   //players use this to determine strategic positions on the playing field
+//(原文注释:球员用它来确定自己在场上的战术位置)——接应甜区计算器。
   SupportSpotCalculator*    m_pSupportSpotCalc;
 
 
+// private 方法:CreatePlayers() 创建本队全部球员;
+// CalculateClosestPlayerToBall() 每帧算出谁离球最近。
   //creates all the players for this team
   void CreatePlayers();
 
@@ -89,6 +134,10 @@ public:
 
   ~SoccerTeam();
 
+//--------------------------------------------------------------------------------
+// public 区:构造/析构,Render()/Update() 每帧调度;
+// 下面一大串是球队战术决策函数(射门/传球/安全判断/找接应),实现在 .cpp。
+//--------------------------------------------------------------------------------
   //the usual suspects
   void        Render()const;
   void        Update();
@@ -158,6 +207,11 @@ public:
   PlayerBase* DetermineBestSupportingAttacker();
   
 
+//--------------------------------------------------------------------------------
+// 下面是一组内联访问器(直接 return 成员):暴露球员列表、状态机、双方球门、
+// 球场、对方球队、球队颜色、关键球员、接应点等。SetControllingPlayer 里还会
+// 顺手通知对方球队 LostControl()——"我们控球了,你们丢球权"。
+//--------------------------------------------------------------------------------
   const std::vector<PlayerBase*>& Members()const{return m_Players;}  
 
   StateMachine<SoccerTeam>* GetFSM()const{return m_pStateMachine;}

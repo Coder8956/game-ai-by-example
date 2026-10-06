@@ -1,5 +1,21 @@
+﻿//==============================================================================================
+//【文件说明】PriorityQueue.h —— 优先队列(堆实现,Dijkstra/A* 用)
+//
+//【这个文件是干什么的?】
+//  3 个基于二叉堆的优先队列:
+//    PriorityQ         —— 最大值优先(每次 pop 出最大);
+//    PriorityQLow      —— 最小值优先(Dijkstra/A* 用,代价小的先出);
+//    IndexedPriorityQLow —— 索引优先队列:堆里存"节点编号",实际键值在外部数组里,
+//                          支持 ChangePriority(某节点代价变了就调整它在堆中的位置)。
+//
+//【谁在使用这个文件?】
+//  GraphAlgorithms.h(Dijkstra/A* 内部用 IndexedPriorityQLow 排序节点)。
+//==============================================================================================
 #ifndef PRIORITYQUEUE_H
 #define PRIORITYQUEUE_H
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 
 
 #include <ostream>
@@ -11,6 +27,10 @@
 //  used to swap two values
 //------------------------------------------------------------------------
 template<class T>
+//--------------------------------------------------------------------------------
+// Swap:交换两个值(堆操作反复用)。
+// ReorderUpwards/ReorderDownwards:上浮/下沉——堆排序的核心调整函数。
+//--------------------------------------------------------------------------------
 void Swap(T &a, T &b)
 {
   T temp = a;
@@ -75,6 +95,7 @@ void ReorderDownwards(std::vector<T>& heap, int nd, int HeapSize)
 
 
 
+  // PriorityQ:最大值堆(本工程几乎不用,A* 用的是 Low 版)。
 //--------------------- PriorityQ ----------------------------------------
 //
 //  basic heap based priority queue implementation
@@ -175,6 +196,7 @@ public:
   const T& Peek()const{return m_Heap[1];}
 };
 
+  // PriorityQLow:最小值堆,把上面的比较方向反过来即可。
 //--------------------- PriorityQLow -------------------------------------
 //
 //  basic 2-way heap based priority queue implementation. This time the priority
@@ -275,6 +297,11 @@ public:
   const T& peek()const{return m_Heap[1];}
 };
 
+//--------------------------------------------------------------------------------
+// IndexedPriorityQLow:索引优先队列。堆 m_Heap 存的是节点编号,
+// 实际键值(代价)在外部数组 m_vecKeys 里;m_invHeap 是反向映射(节点→堆位置),
+// 这样 ChangePriority(节点) 能直接定位并上浮调整。
+//--------------------------------------------------------------------------------
 //----------------------- IndexedPriorityQLow ---------------------------
 //
 //  Priority queue based on an index into a set of keys. The queue is
@@ -350,6 +377,7 @@ public:
   
   //you must pass the constructor a reference to the std::vector the PQ
   //will be indexing into and the maximum size of the queue.
+  // 构造:传入外部键值数组的引用;insert 把节点编号入堆;Pop 出代价最小的节点;
   IndexedPriorityQLow(std::vector<KeyType>& keys,
                       int              MaxSize):m_vecKeys(keys),
                                                 m_iMaxSize(MaxSize),
@@ -389,6 +417,7 @@ public:
 
   //if the value of one of the client key's changes then call this with 
   //the key's index to adjust the queue accordingly
+  // ChangePriority:某节点代价变小后,在堆中上浮它的位置。
   void ChangePriority(const int idx)
   {
     ReorderUpwards(m_invHeap[idx]);

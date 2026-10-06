@@ -1,3 +1,14 @@
+﻿//==============================================================================================
+//【文件说明】TeamStates.cpp —— 球队级 3 个战术状态类的实现
+//
+//【这个文件是干什么的?】
+//  实现 Attacking/Defending/PrepareForKickOff 的 Enter/Execute/Exit。
+//  关键在于:进攻/防守时,每个球员的"老家区域"站位图不一样(见 BlueRegions/RedRegions),
+//  切入状态时就把这些站位数组写回各球员。
+//
+//【本文件包含了谁?】
+//  自己的 .h、SoccerTeam.h、PlayerBase.h、SoccerPitch.h、MessageDispatcher、constants.h 等。
+//==============================================================================================
 #include "TeamStates.h"
 #include "SoccerTeam.h"
 #include "PlayerBase.h"
@@ -13,6 +24,8 @@
 
 
 
+// 自由函数 ChangePlayerHomeRegions:遍历全队,把 NewRegions 数组里的区域编号
+// 逐个设为对应球员的老家区域(进攻/防守站位不同就靠它切换)。
 void ChangePlayerHomeRegions(SoccerTeam* team, const int NewRegions[TeamSize])
 {
   for (int plyr=0; plyr<TeamSize; ++plyr)
@@ -23,6 +36,9 @@ void ChangePlayerHomeRegions(SoccerTeam* team, const int NewRegions[TeamSize])
 
 //************************************************************************ ATTACKING
 
+//**************** 进攻 Attacking ****************
+// Enter:按球队颜色套用进攻站位(BlueRegions/RedRegions),并更新等待中球员的目标;
+// Execute:本队一旦丢球→切防守;否则持续算最佳接应点。Exit:清掉接应者。
 Attacking* Attacking::Instance()
 {
   static Attacking instance;
@@ -80,6 +96,8 @@ void Attacking::Exit(SoccerTeam* team)
 
 //************************************************************************ DEFENDING
 
+//**************** 防守 Defending ****************
+// Enter:套用防守站位数组;Execute:本队一旦控球→切进攻。
 Defending* Defending::Instance()
 {
   static Defending instance;
@@ -126,6 +144,9 @@ void Defending::Exit(SoccerTeam* team){}
 
 
 //************************************************************************ KICKOFF
+//**************** 开球准备 PrepareForKickOff ****************
+// Enter:清空关键球员指针,叫所有球员回家;
+// Execute:双方全员都回到位→切防守(开球);Exit:吹响哨子 SetGameOn 正式开赛。
 PrepareForKickOff* PrepareForKickOff::Instance()
 {
   static PrepareForKickOff instance;

@@ -1,3 +1,12 @@
+﻿//==============================================================================================
+//【文件说明】Raven_WeaponSystem.h —— 机器人的「武器系统」
+//
+//【这个文件是干什么的?】
+//  管机器人身上带了哪些武器、当前用哪把、瞄准、开火、换弹、选最优武器。
+//  武器种类本身定义在 armory\ 目录(不在本分片范围)。
+//
+//【谁在使用这个文件?】
+//  Raven_Bot.h/.cpp —— 每个 bot 持有一个 WeaponSystem,战斗时调 TakeAimAndShoot。
 #ifndef RAVEN_WEAPONSYSTEM
 #define RAVEN_WEAPONSYSTEM
 #pragma warning (disable:4786)
@@ -9,6 +18,7 @@
 //
 //  Desc:   class to manage all operations specific to weapons and their
 //          deployment
+//(原文注释翻译:管理武器及其部署的所有操作)
 //
 //-----------------------------------------------------------------------------
 #include <map>
@@ -19,6 +29,8 @@ class Raven_Weapon;
 
 
 
+//--------------------------------------------------------------------------------
+// class Raven_WeaponSystem —— 武器系统。
 class Raven_WeaponSystem
 {
 private:
@@ -31,15 +43,19 @@ private:
   Raven_Bot*       m_pOwner;
 
   //pointers to the weapons the bot is carrying (a bot may only carry one
+//(原文注释翻译:机器人携带的武器指针表;每种武器最多一把)
   //instance of each weapon)
+// m_WeaponMap:武器表;key=武器类型,value=武器指针。
   WeaponMap        m_WeaponMap;
 
   //a pointer to the weapon the bot is currently holding
   Raven_Weapon*    m_pCurrentWeapon;
 
   //this is the minimum amount of time a bot needs to see an opponent before
+//(原文注释翻译:机器人看到敌人后要反应多久才会开枪;防止一看见就立刻打)
   //it can react to it. This variable is used to prevent a bot shooting at
   //an opponent the instant it becomes visible.
+// m_dReactionTime:反应时间;m_dAimAccuracy:瞄准误差(弧度);m_dAimPersistance:目标消失后继续瞄准多久。
   double            m_dReactionTime;
 
   //each time the current weapon is fired a certain amount of random noise is
@@ -55,6 +71,8 @@ private:
 
   //predicts where the target will be by the time it takes the current weapon's
   //projectile type to reach it. Used by TakeAimAndShoot
+// PredictFuturePositionOfTarget:预判目标未来位置;AddNoiseToAim:加瞄准误差。
+//(原文注释翻译:预测目标未来位置(考虑子弹飞行时间);TakeAimAndShoot 用)
   Vector2D    PredictFuturePositionOfTarget()const;
 
   //adds a random deviation to the firing angle not greater than m_dAimAccuracy 
@@ -76,6 +94,8 @@ public:
   //this method aims the bot's current weapon at the target (if there is a
   //target) and, if aimed correctly, fires a round. (Called each update-step
   //from Raven_Bot::Update)
+// Initialize:初始只给一把 blaster;TakeAimAndShoot:瞄准并射击;SelectWeapon:选最优武器。
+//(原文注释翻译:每帧把当前武器瞄准目标,瞄准了就开火;由 Raven_Bot::Update 调)
   void          TakeAimAndShoot()const;
 
   //this method determines the most appropriate weapon to use given the current
@@ -85,6 +105,8 @@ public:
   //this will add a weapon of the specified type to the bot's inventory. 
   //If the bot already has a weapon of this type only the ammo is added. 
   //(called by the weapon giver-triggers to give a bot a weapon)
+// AddWeapon:加武器;ChangeWeapon:切换武器;ShootAt:朝指定位置开火。
+//(原文注释翻译:武器给予触发器调它,给机器人加一把武器)
   void          AddWeapon(unsigned int weapon_type);
 
   //changes the current weapon to one of the specified type (provided that type
@@ -99,6 +121,8 @@ public:
 
   //returns a pointer to the specified weapon type (if in inventory, null if 
   //not)
+// GetWeaponFromInventory:取武器;GetAmmoRemainingForWeapon:查子弹数。
+//(原文注释翻译:返回指定类型的武器指针;没有返回 NULL)
   Raven_Weapon* GetWeaponFromInventory(int weapon_type);
 
   //returns the amount of ammo remaining for the specified weapon

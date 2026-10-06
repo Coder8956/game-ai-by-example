@@ -1,5 +1,34 @@
+﻿//==============================================================================================
+//【程序总览】Pathfinder —— 第 5 章"网格寻路(A*/Dijkstra/BFS/DFS)"演示程序
+//
+// 这是一个标准的 Windows 桌面窗口程序:窗口里是一张 19x19 的格子地。
+// 你用上方工具栏选笔刷(障碍/水/泥/平地/起点/终点),鼠标在格子上涂,
+// 再点 DFS/BFS/Dijkstra/A* 按钮,程序就在图上自动搜出一条路径并画出来,
+// 同时用红线画出算法"探索过的范围"、底部写本次耗时与总代价。
+//
+//【本子工程文件地图】
+//   main.cpp(本文件:Windows 程序入口 WinMain + 消息处理 WindowProc)
+//      ├─▶ Pathfinder.h / Pathfinder.cpp —— 寻路核心类(建图/涂地形/跑算法/渲染)
+//      ├─▶ constants.h  —— 窗口尺寸、格子数等常数
+//      ├─▶ resource.h   —— 工具栏按钮/菜单的编号(由 toolbar.rc 配合)
+//      ├─▶ misc/Cgdi.h、misc/utils.h、misc/WindowUtils.h、Time/PrecisionTimer.h
+//      │                 —— 都在公共目录 Common\,提供绘图/窗口/计时小工具
+//      └─▶ <windows.h>、<commctrl.h> —— Windows API 与公共控件(工具栏)
+//
+//【一次完整执行的调用流程】
+//   ① WinMain 注册窗口类、建窗口、建工具栏、调 g_Pathfinder->CreateGraph 铺网格;
+//   ② 进入消息循环 GetMessage,系统把鼠标/菜单事件转成消息交给 WindowProc;
+//   ③ 用户点按钮 → WindowProc 收到 WM_COMMAND → 调 g_Pathfinder->ChangeBrush 或
+//      CreatePathAStar 等;鼠标涂格子 → WM_LBUTTONDOWN/MOUSEMOVE → PaintTerrain;
+//   ④ 收到 WM_PAINT → 先在后台缓冲画图(g_Pathfinder->Render)再整体贴到屏幕;
+//   ⑤ 用户关闭 → WM_DESTROY → 释放资源、PostQuitMessage,退出消息循环。
+//==============================================================================================
+// #pragma warning(disable:4786):关掉"调试符号名过长"的无害警告(老 STL 常见)。
 #pragma warning (disable:4786)
 
+// ---- 系统与库头文件 ----
+//  windows.h —— Windows API;time.h —— srand/time 随机种子;commctrl.h —— 工具栏公共控件;
+//  #pragma comment(lib,...) —— 告诉链接器自动链接 comctl32.lib(工具栏的实现库)。
 #include <windows.h>
 #include <time.h>
 
@@ -7,6 +36,7 @@
 #include <commctrl.h>
 #pragma comment(lib, "comctl32.lib")
 
+// ---- 本工程头文件(见文件地图)----
 #include "constants.h"
 #include "misc/utils.h"
 #include "Time/PrecisionTimer.h"
@@ -18,12 +48,18 @@
 
 //need to define a custom message so that the backbuffer can be resized to 
 //accomodate the toolbar
+//(原文注释:需要自定义一个消息,好让后台缓冲按工具栏高度调整大小)
+// Windows 消息编号:WM_USER 以上是"程序员自定义消息区"。这里自定义一条
+// UM_TOOLBAR_HAS_BEEN_CREATED,意思是"工具栏建好了,该重新量客户区大小了"。
 #define UM_TOOLBAR_HAS_BEEN_CREATED (WM_USER + 33)
 
 //--------------------------------- Globals ------------------------------
 //
 //------------------------------------------------------------------------
 
+// ---- 全局变量 ----
+// g_szApplicationName/g_szWindowClassName:窗口标题与窗口类名;
+// g_Pathfinder:寻路核心对象指针(全程序唯一);g_hwndToolbar:工具栏窗口句柄。
 const char* g_szApplicationName = "PathFinder";
 const char*	g_szWindowClassName = "MyWindowClass";
 
@@ -36,6 +72,7 @@ HWND g_hwndToolbar;
 //
 //  Call this to refresh the client window
 //------------------------------------------------------------------------
+// RedrawDisplay:让整个窗口失效并立刻重绘(调 InvalidateRect + UpdateWindow)。
 void RedrawDisplay(HWND hwnd)
 {
   InvalidateRect(hwnd, NULL, TRUE);
@@ -46,6 +83,7 @@ void RedrawDisplay(HWND hwnd)
 //
 //  resizes the client are taking into account any toolbars and any menus
 //-----------------------------------------------------------------------------
+// ResizeToCorrectClientArea:把窗口外框调整到"客户区正好放下 500x500 + 工具栏"的大小。
 void ResizeToCorrectClientArea(HWND hwnd, int AccumulativeToolbarHeight, RECT ClientArea)
 {
  
@@ -70,6 +108,10 @@ void ResizeToCorrectClientArea(HWND hwnd, int AccumulativeToolbarHeight, RECT Cl
 //	This is the callback function which handles all the windows messages
 //-------------------------------------------------------------------------
 
+//==========================================================================
+// WindowProc —— 窗口消息回调函数(CALLBACK = 由 Windows 系统反过来调用它)。
+// 系统每发生一个事件(建窗、按键、鼠标、点菜、重绘、关闭),就构造一条消息
+// 调用本函数,用 switch(msg) 分发处理。这是 Windows 程序的"心脏"。
 LRESULT CALLBACK WindowProc (HWND   hwnd,
                              UINT   msg,
                              WPARAM wParam,
@@ -468,6 +510,8 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
 //----------------------------- CreateToolBar ----------------------------
 //------------------------------------------------------------------------
+// CreateToolBar:创建窗口下方的工具栏——加载公共控件、建工具栏窗口、
+// 把 11 个按钮(六种笔刷 + 四种算法 + 一个分隔线)逐个加进去。
 HWND CreateToolBar(HWND hwndParent, HINSTANCE hinstMain)
 {
 
@@ -610,6 +654,10 @@ HWND CreateToolBar(HWND hwndParent, HINSTANCE hinstMain)
 //
 //	The entry point of the windows program
 //------------------------------------------------------------------------
+//==========================================================================
+// WinMain —— Windows 程序的真正入口(相当于控制台程序的 main)。
+// WINAPI 是调用约定标记。它负责:注册窗口类 → 创建主窗口 → 建工具栏 →
+// 建网格图 → 进入 GetMessage 消息循环(直到收到退出消息)→ 清理并返回。
 int WINAPI WinMain (HINSTANCE hInstance,
                     HINSTANCE hPrevInstance,
                     LPSTR     szCmdLine, 

@@ -1,3 +1,15 @@
+﻿//==============================================================================================
+//【文件说明】SoccerPitch.cpp —— 球场类的实现(总调度)
+//
+//【这个文件是干什么的?】
+//  构造函数把全场零件一次建齐:比赛区域、切分区域、红/蓝球门、足球、红蓝两队、
+//  边界墙;Update() 每帧推进球和两队,检测进球后把球放回中场、切到开球状态;
+//  Render() 把草地、区域、球门、标线、球、两队、墙和比分全部画出来。
+//
+//【本文件包含了谁?】
+//  自己的 .h、SoccerBall.h、Goal.h、SoccerTeam.h、TeamStates.h、ParamLoader.h、
+//  PlayerBase.h、Game/Region.h、Game/EntityManager.h、2D 几何/变换工具等。
+//==============================================================================================
 #include "SoccerPitch.h"
 #include "SoccerBall.h"
 #include "Goal.h"
@@ -12,11 +24,16 @@
 #include "TeamStates.h"
 #include "misc/FrameCounter.h"
 
+// 全局常量:场地横向切 6 格、纵向切 3 格,共 18 个区域(球员据此站位)。
 const int NumRegionsHorizontal = 6; 
 const int NumRegionsVertical   = 3;
 
 //------------------------------- ctor -----------------------------------
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// 构造函数:初始化列表接住窗口宽高;函数体里 new 出比赛区域、切分区域、
+// 红门(左,朝右)、蓝门(右,朝左)、足球、红蓝两队,互设对方球队,再沿边线建 6 面墙。
+//--------------------------------------------------------------------------------
 SoccerPitch::SoccerPitch(int cx, int cy):m_cxClient(cx),
                                          m_cyClient(cy),
                                          m_bPaused(false),
@@ -76,6 +93,7 @@ SoccerPitch::SoccerPitch(int cx, int cy):m_cxClient(cx),
 
 //-------------------------------- dtor ----------------------------------
 //------------------------------------------------------------------------
+// 析构函数:按"谁 new 谁 delete"原则,释放球、两队、两球门、比赛区域和每个小区域。
 SoccerPitch::~SoccerPitch()
 {
   delete m_pBall;
@@ -99,6 +117,8 @@ SoccerPitch::~SoccerPitch()
 //  this demo works on a fixed frame rate (60 by default) so we don't need
 //  to pass a time_elapsed as a parameter to the game entities
 //------------------------------------------------------------------------
+// Update 每帧:暂停则直接返回;先更新球,再更新两队;
+// 任一球门 Scored() 检测到进球→停赛、球放回中场、两队切到开球准备状态。
 void SoccerPitch::Update()
 {
   if (m_bPaused) return;
@@ -127,6 +147,7 @@ void SoccerPitch::Update()
 }
 
 //------------------------- CreateRegions --------------------------------
+// CreateRegions:按横 6×纵 3 把比赛区域切成小矩形 Region,逐个 new 存进 m_Regions。
 void SoccerPitch::CreateRegions(double width, double height)
 {  
   //index into the vector
@@ -148,6 +169,8 @@ void SoccerPitch::CreateRegions(double width, double height)
 
 //------------------------------ Render ----------------------------------
 //------------------------------------------------------------------------
+// Render:画草地、(按开关)各区域、两个球门、中圈中线、球、两队、边线墙,
+// 最后在底部写红/蓝比分(ttos 把数字转成字符串)。
 bool SoccerPitch::Render()
 {
   //draw the grass

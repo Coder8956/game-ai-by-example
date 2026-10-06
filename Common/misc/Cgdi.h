@@ -1,5 +1,22 @@
+﻿//==============================================================================================
+//【文件说明】Cgdi.h —— GDI 绘图单例的封装(画线/矩形/圆/文字/箭头)
+//
+//【这个文件是干什么的?】
+//  Windows GDI(图形设备接口)原生 API 很啰嗦。Cgdi 单例预创建了一套画笔(HPEN)和画刷(HBRUSH),
+//  调用 gdi->RedPen() 切换当前画笔颜色,再 gdi->Line(...)/Circle(...)/Rect(...) 即可画东西。
+//  宏 #define gdi Cgdi::Instance() 让代码短写。任何渲染前必须 StartDrawing(hdc),结束后 StopDrawing。
+//
+//【谁在使用这个文件?】
+//  全工程:WestWorld1、SimpleSoccer、Pathfinder、Raven 等所有可视化程序都用 gdi-> 画实体。
+//
+//【本文件包含了谁?】
+//  <windows.h>(GDI API)、<string>/<vector>/<cassert>、"2D/Vector2D.h"(用 Vector2D 当坐标)。
+//==============================================================================================
 #ifndef CGDI_H
 #define CGDI_H
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 //------------------------------------------------------------------------
 //
 //  Name:   Cgdi.h
@@ -22,6 +39,7 @@
 
 
 //------------------------------- define some colors
+  // colors 表:NumColors 个 RGB 颜色,后面 enum 里的 red/blue/... 作为下标索引这张表。
 const int NumColors = 15;
 
 const COLORREF colors[NumColors] =
@@ -45,8 +63,14 @@ const COLORREF colors[NumColors] =
 
 
 //make life easier on the fingers
+  // 宏:gdi 展开为 Cgdi::Instance(),所以代码里写 gdi->Line(...) 等价于调单例。
 #define gdi Cgdi::Instance()
 
+//--------------------------------------------------------------------------------
+// class Cgdi —— 绘图单例(私有构造,只允许 Instance() 取)。
+//   m_BlackPen/m_RedPen... 预创建好的画笔;m_RedBrush... 预创建好的画刷;
+//   m_hdc 是本次绘制目标的设备上下文(由 StartDrawing 传入)。
+//--------------------------------------------------------------------------------
 class Cgdi
 {
 public:
@@ -171,6 +195,7 @@ public:
 
 
 
+  // StartDrawing:保存旧画笔/画刷,记录 hdc;StopDrawing:把旧画笔/画刷恢复回去。
   //ALWAYS call this before drawing
   void StartDrawing(HDC hdc)
   {
@@ -202,6 +227,7 @@ public:
   }
 
 
+  // TextAtPos:TextOut 的重载(int/double/Vector2D 坐标)。
   //---------------------------Text
 
   void TextAtPos(int x, int y, const std::string &s)
@@ -227,6 +253,7 @@ public:
   void TextColor(int r, int g, int b){SetTextColor(m_hdc, RGB(r,g,b));}
 
 
+  // DrawDot:SetPixel 画一个点。
   //----------------------------pixels
   void DrawDot(Vector2D pos, COLORREF color)
   {
@@ -238,6 +265,7 @@ public:
     SetPixel(m_hdc, x, y, color);
   }
   
+  // Line:MoveToEx+LineTo;PolyLine:一串点连线;LineWithArrow:画带箭头的线(AI 常用,指示朝向)。
   //-------------------------Line Drawing
 
   void Line(Vector2D from, Vector2D to)
@@ -307,6 +335,7 @@ public:
   }
 
 
+  // Rect:Rectangle;ClosedShape:把若干点闭合;Circle:Ellipse(画圆);SetPenColor:按枚举切画笔。
   //---------------------Geometry drawing methods
 
   void Rect(int left, int top, int right, int bot)

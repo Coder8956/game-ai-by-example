@@ -1,5 +1,20 @@
+﻿//==============================================================================================
+//【文件说明】TriggerRegion.h —— 触发器影响区域的几何形状
+//
+//【这个文件是干什么的?】
+//  TriggerRegion 是抽象基类,只规定一个接口 isTouching(实体位置,半径) → 是否重叠。
+//  两个具体子类:
+//    TriggerRegion_Circle    —— 圆形区域(用距离平方判断);
+//    TriggerRegion_Rectangle —— 矩形区域(用实体的包围盒和矩形的重叠判断)。
+//
+//【谁在使用这个文件?】
+//  Trigger.h 持一个 TriggerRegion* 指向这两个子类之一。
+//==============================================================================================
 #ifndef TRIGGER_REGION_H
 #define TRIGGER_REGION_H
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 //  Name:   TriggerRegion.h
@@ -11,6 +26,7 @@
 //          a given position is inside the region
 //-----------------------------------------------------------------------------
 #include "2d/Vector2d.h"
+  // 抽象基类:isTouching 纯虚,子类必须实现。
 #include "2d/InvertedAABBox2D.h"
 
 class TriggerRegion
@@ -25,6 +41,7 @@ public:
 };
 
 
+  // 圆形区域:存圆心 m_vPos 和半径 m_dRadius;isTouching 用距离平方 < (r1+r2)^2 判断。
 //--------------------------- TriggerRegion_Circle ----------------------------
 //
 //  class to define a circular region of influence
@@ -53,6 +70,7 @@ public:
 };
 
 
+  // 矩形区域:包一个 InvertedAABBox2D;isTouching 用实体外接盒与矩形重叠判断。
 //--------------------------- TriggerRegion_Rectangle -------------------------
 //
 //  class to define a circular region of influence

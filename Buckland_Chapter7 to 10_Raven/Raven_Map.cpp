@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】Raven_Map.cpp —— 地图的实现
+//==============================================================================================
 #include "Raven_Map.h"
 #include "Raven_ObjectEnumerations.h"
 #include "misc/Cgdi.h"
@@ -22,6 +25,7 @@
 
 //----------------------------- ctor ------------------------------------------
 //-----------------------------------------------------------------------------
+// 构造函数:全部指针/尺寸先置 0。
 Raven_Map::Raven_Map():m_pNavGraph(NULL),
                        m_pSpacePartition(NULL),
                        m_iSizeY(0),
@@ -31,6 +35,7 @@ Raven_Map::Raven_Map():m_pNavGraph(NULL),
 }
 //------------------------------ dtor -----------------------------------------
 //-----------------------------------------------------------------------------
+// 析构函数:调 Clear 清理。
 Raven_Map::~Raven_Map()
 {
   Clear();
@@ -40,7 +45,10 @@ Raven_Map::~Raven_Map()
 //---------------------------- Clear ------------------------------------------
 //
 //  deletes all the current objects ready for a map load
+//(原文注释:删掉当前所有对象,为加载新地图做准备)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Clear:删触发器、删门、删墙、删导航图、删格子空间。
 void Raven_Map::Clear()
 {
   //delete the triggers
@@ -74,6 +82,7 @@ void Raven_Map::Clear()
 
 //----------------------------- AddWall ---------------------------------------
 //-----------------------------------------------------------------------------
+// AddWall:从文件读墙(或直接给两端点 new 墙)。
 void Raven_Map::AddWall(std::ifstream& in)
 {
   m_Walls.push_back(new Wall2D(in));
@@ -90,6 +99,7 @@ Wall2D* Raven_Map::AddWall(Vector2D from, Vector2D to)
 
 //--------------------------- AddDoor -----------------------------------------
 //-----------------------------------------------------------------------------
+// AddDoor:从文件读门;AddDoorTrigger:加按钮触发器。
 void Raven_Map::AddDoor(std::ifstream& in)
 {
   Raven_Door* pDoor = new Raven_Door(this, in);
@@ -116,6 +126,7 @@ void Raven_Map::AddDoorTrigger(std::ifstream& in)
 
 //---------------------------- AddSpawnPoint ----------------------------------
 //-----------------------------------------------------------------------------
+// AddSpawnPoint:读一个出生点。
 void Raven_Map::AddSpawnPoint(std::ifstream& in)
 {
   double x, y, dummy;
@@ -128,6 +139,7 @@ void Raven_Map::AddSpawnPoint(std::ifstream& in)
 
 //----------------------- AddHealth__Giver ----------------------------------
 //-----------------------------------------------------------------------------
+// AddHealth_Giver:加加血触发器,并让对应导航图节点指向它。
 void Raven_Map::AddHealth_Giver(std::ifstream& in)
 {
   Trigger_HealthGiver* hg = new Trigger_HealthGiver(in);
@@ -145,6 +157,7 @@ void Raven_Map::AddHealth_Giver(std::ifstream& in)
 
 //----------------------- AddWeapon__Giver ----------------------------------
 //-----------------------------------------------------------------------------
+// AddWeapon_Giver:加给武器触发器,同样挂到导航图节点上。
 void Raven_Map::AddWeapon_Giver(int type_of_weapon, std::ifstream& in)
 {
   Trigger_WeaponGiver* wg = new Trigger_WeaponGiver(in);
@@ -167,7 +180,10 @@ void Raven_Map::AddWeapon_Giver(int type_of_weapon, std::ifstream& in)
 //------------------------- LoadMap ------------------------------------
 //
 //  sets up the game environment from map file
+//(原文注释:从地图文件搭建游戏环境)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// LoadMap:打开地图文件→先读导航图→分区→按对象类型逐个 new 实体→算全对代价表。
 bool Raven_Map::LoadMap(const std::string& filename)
 {  
   std::ifstream in(filename.c_str());
@@ -304,8 +320,10 @@ bool Raven_Map::LoadMap(const std::string& filename)
 //
 //  Uses the pre-calculated lookup table to determine the cost of traveling
 //  from nd1 to nd2
+//(原文注释翻译:用预计算表查两节点间代价)
 //-----------------------------------------------------------------------------
 double 
+// CalculateCostToTravelBetweenNodes:直接查 m_PathCosts 表。
 Raven_Map::CalculateCostToTravelBetweenNodes(int nd1, int nd2)const
 {
   assert (nd1>=0 && nd1<m_pNavGraph->NumNodes() &&
@@ -320,6 +338,7 @@ Raven_Map::CalculateCostToTravelBetweenNodes(int nd1, int nd2)const
 
 //-------------------------- PartitionEnvironment -----------------------------
 //-----------------------------------------------------------------------------
+// PartitionNavGraph:把导航图节点加进格子空间,加速查邻居。
 void Raven_Map::PartitionNavGraph()
 {
   if (m_pSpacePartition) delete m_pSpacePartition;
@@ -341,7 +360,9 @@ void Raven_Map::PartitionNavGraph()
 //---------------------------- AddSoundTrigger --------------------------------
 //
 //  given the bot that has made a sound, this method adds a SoundMade trigger
+//(原文注释:给定发声的 bot,加一个声音通知触发器)
 //-----------------------------------------------------------------------------
+// AddSoundTrigger:加声音触发器;UpdateTriggerSystem:每帧测所有 bot。
 void Raven_Map::AddSoundTrigger(Raven_Bot* pSoundSource, double range)
 {
   m_TriggerSystem.Register(new Trigger_SoundNotify(pSoundSource, range));
@@ -361,6 +382,7 @@ void Raven_Map::UpdateTriggerSystem(std::list<Raven_Bot*>& bots)
 //
 //  returns the position of a graph node selected at random
 //-----------------------------------------------------------------------------
+// GetRandomNodeLocation:随机挑一个导航图节点返回其位置。
 Vector2D Raven_Map::GetRandomNodeLocation()const
 {
   NavGraph::ConstNodeIterator NodeItr(*m_pNavGraph);
@@ -377,6 +399,7 @@ Vector2D Raven_Map::GetRandomNodeLocation()const
 
 //--------------------------- Render ------------------------------------------
 //-----------------------------------------------------------------------------
+// Render:可选画导航图、画门、画触发器、画墙、画出生点。
 void Raven_Map::Render()
 {
   //render the navgraph

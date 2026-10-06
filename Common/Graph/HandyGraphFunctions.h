@@ -1,5 +1,34 @@
+﻿//==============================================================================================
+//【文件说明】HandyGraphFunctions.h —— 图论模块的"工具箱"(建网格图、画图、加权表)
+//
+//【这个文件是干什么的?】
+//  图(SparseGraph)本身只是"节点+边"的数据结构;本文件提供配套的实用函数:
+//    ValidNeighbour                  —— 判断网格坐标有没有越界;
+//    GraphHelper_AddAllNeighboursToGridNode —— 给网格节点连上周围 8 个邻居;
+//    GraphHelper_CreateGrid          —— 一键生成一张铺满矩形区域的网格图;
+//    GraphHelper_DrawUsingGDI        —— 用 GDI 把图画到屏幕上(调试用);
+//    WeightNavGraphNodeEdges         —— 按地形权重缩放某节点所有边的代价;
+//    CreateAllPairsTable             —— 预计算"任意两节点间"的最短路径(全对表);
+//    CreateAllPairsCostsTable        —— 预计算"任意两节点间"的最短代价(全对代价表);
+//    CalculateAverageGraphEdgeLength / GetCostliestGraphEdge —— 图统计。
+//
+//【谁在使用这个文件?】
+//  第 5 章 Pathfinder 工程的 Pathfinder.cpp/main.cpp 用它建网格图、画图;
+//  Raven(第 7~10 章)也用 WeightNavGraphNodeEdges 给地形加权。
+//
+//【本文件包含了谁?】
+//  <iostream>                       —— 标准输入输出;
+//  "misc/Cgdi.h"                   —— 绘图单例 gdi(画线/圆/文字);
+//  "misc/utils.h"                  —— 工具函数(Vec2DDistance、MinDouble 等);
+//  "misc/Stream_Utility_Functions.h" —— ttos(整数转字符串)等;
+//  "Graph/GraphAlgorithms.h"        —— Dijkstra/A* 搜索算法类;
+//  "Graph/AStarHeuristicPolicies.h" —— A* 启发函数策略。
+//==============================================================================================
 #ifndef GRAPH_FUNCS
 #define GRAPH_FUNCS
+//--------------------------------------------------------------------------------
+// 包含保护原理详见 Buckland_Chapter4-SimpleSoccer/Goal.h。
+//--------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 //  Name:   HandyGraphFunctions.h
@@ -28,6 +57,10 @@
 //
 //  returns true if x,y is a valid position in the map
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// ValidNeighbour:判断网格坐标 (x,y) 是否在 [0,NumCellsX)×[0,NumCellsY) 范围内。
+//   !((x<0)||...) —— 逻辑或 || 连接四种越界可能,整体取反 = 在界内返回 true。
+//--------------------------------------------------------------------------------
 bool ValidNeighbour(int x, int y, int NumCellsX, int NumCellsY)
 {
   return !((x < 0) || (x >= NumCellsX) || (y < 0) || (y >= NumCellsY));
@@ -39,6 +72,13 @@ bool ValidNeighbour(int x, int y, int NumCellsX, int NumCellsY)
 //  is positioned in a grid layout
 //------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// GraphHelper_AddAllNeighboursToGridNode:给网格里的某个节点(row,col)连上周围 8 个格子。
+//   双重 for(i=-1..1, j=-1..1) 遍历 3×3 邻域;(i==0 && j==0) 跳过自己;
+//   对每个合法邻居:算两点距离 dist → 建边(row*NumCellsX+col → nodeY*NumCellsX+nodeX);
+//   节点编号算法:二维数组 [row][col] 展平成一维 = row*NumCellsX + col。
+//   若不是有向图(!graph.isDigraph()),还要再加一条反方向的边(无向=双向)。
+//--------------------------------------------------------------------------------
 void GraphHelper_AddAllNeighboursToGridNode(graph_type& graph,
                                             int         row,
                                             int         col,
@@ -92,6 +132,12 @@ void GraphHelper_AddAllNeighboursToGridNode(graph_type& graph,
 //  and vertically 
 //-----------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// GraphHelper_CreateGrid:按环境尺寸 (cySize×cxSize) 和格子数 (NumCellsY×NumCellsX)
+//   生成一张完整的网格图。步骤:① 算每格宽高;② 双重循环 AddNode 铺所有节点;
+//   ③ 逐格调用上面的 AddAllNeighboursToGridNode 连边。
+//   NavGraphNode<>(...) 里的 <> 空模板尖括号:用缺省模板参数(void*)实例化导航节点。
+//--------------------------------------------------------------------------------
 void GraphHelper_CreateGrid(graph_type& graph,
                              int cySize,
                              int cxSize,
@@ -135,6 +181,13 @@ void GraphHelper_CreateGrid(graph_type& graph,
 //  draws a graph using the GDI
 //-----------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// GraphHelper_DrawUsingGDI:用 GDI 把图调试画出来。
+//   遍历所有节点:在节点位置画小圆;若 DrawNodeIDs 为真,再用灰字印出节点编号;
+//   再遍历该节点的所有边,从节点画直线到边的终点。
+//   ConstNodeIterator / ConstEdgeIterator 是图提供的"只读迭代器",
+//   begin() 取起点、end() 判断是否遍历完、next() 走到下一个(避免直接暴露内部容器)。
+//--------------------------------------------------------------------------------
 void GraphHelper_DrawUsingGDI(const graph_type& graph, int color, bool DrawNodeIDs = false)
 {	
 
@@ -175,6 +228,11 @@ void GraphHelper_DrawUsingGDI(const graph_type& graph, int color, bool DrawNodeI
 //  the value with the weight. Useful for setting terrain costs.
 //------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// WeightNavGraphNodeEdges:把某节点所有边的代价 × 权重 weight。
+//   典型用途:让"沼泽"这类地形上的边代价变大,AI 就会绕路走。
+//   assert(节点<总数) 调试期防越界;非有向图时反向边也同步加权。
+//--------------------------------------------------------------------------------
 void WeightNavGraphNodeEdges(graph_type& graph, int node, double weight)
 {
   //make sure the node is present
@@ -208,6 +266,13 @@ void WeightNavGraphNodeEdges(graph_type& graph, int node, double weight)
 // in a graph to every other
 //-----------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// CreateAllPairsTable:构建"全对最短路径表"——一张二维表 ShortestPaths[src][dst],
+//   存"从 src 出发走到 dst,下一步该往哪个节点走"。
+//   做法:对每个 source 跑一次 Dijkstra 得到最短路径树(SPT),再从每个 target 沿着
+//   SPT 反向回溯出"下一步"。建一次表,之后任意两点寻路 O(1) 查表。
+//   vector<vector<int> > 是"动态数组的动态数组"(标准库二维表)。
+//--------------------------------------------------------------------------------
 std::vector<std::vector<int> > CreateAllPairsTable(const graph_type& G)
 {
   enum {no_path = -1};
@@ -257,6 +322,9 @@ std::vector<std::vector<int> > CreateAllPairsTable(const graph_type& G)
 //  node to every other
 //-----------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// CreateAllPairsCostsTable:与上一个类似,但存的是"最短代价"而不是"下一步走哪"。
+//--------------------------------------------------------------------------------
 std::vector<std::vector<double> > CreateAllPairsCostsTable(const graph_type& G)
 {
   //create a two dimensional vector
@@ -291,6 +359,10 @@ std::vector<std::vector<double> > CreateAllPairsCostsTable(const graph_type& G)
 //  other factors such as terrain type, gradients etc)
 //------------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// CalculateAverageGraphEdgeLength:遍历所有边,累加真实几何距离(不是边里存的 cost),
+//   最后除以边数,得到平均边长——用来评估图的疏密程度。
+//--------------------------------------------------------------------------------
 double CalculateAverageGraphEdgeLength(const graph_type& G)
 {
   double TotalLength = 0;
@@ -319,6 +391,10 @@ double CalculateAverageGraphEdgeLength(const graph_type& G)
 //  returns the cost of the costliest edge in the graph
 //-----------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// GetCostliestGraphEdge:遍历所有边,返回代价最大的那条边的 cost。
+//   greatest 初值取 MinDouble(double 最小值),保证任何真实代价都比它大。
+//--------------------------------------------------------------------------------
 double GetCostliestGraphEdge(const graph_type& G)
 {
   double greatest = MinDouble;

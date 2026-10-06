@@ -1,3 +1,14 @@
+﻿//==============================================================================================
+//【文件说明】FieldPlayerStates.cpp —— 场上球员 8 个状态类的具体实现
+//
+//【这个文件是干什么的?】
+//  实现每个状态的 Instance() 单例入口,以及 Enter/Execute/Exit/OnMessage。
+//  状态切换的触发条件就写在各 Execute() 里(如追球时进了踢球范围→切到 KickBall)。
+//
+//【本文件包含了谁?】
+//  自己的 .h、FieldPlayer.h、SoccerTeam.h、SoccerPitch.h、SoccerBall.h、Goal.h、
+//  SteeringBehaviors.h、ParamLoader.h、MessageDispatcher、SoccerMessages、Regulator 等。
+//==============================================================================================
 #include "FieldPlayerStates.h"
 #include "Debug/DebugConsole.h"
 #include "SoccerPitch.h"
@@ -21,6 +32,9 @@
 
 //************************************************************************ Global state
 
+//******************** 全局状态 GlobalPlayerState ********************
+// Instance():函数内 static 局部变量实现的单例(原理见 ParamLoader.cpp)。
+// Execute 每帧先跑:控球者离球近就限速带球,没控球就恢复全速。
 GlobalPlayerState* GlobalPlayerState::Instance()
 {
   static GlobalPlayerState instance;
@@ -45,6 +59,8 @@ void GlobalPlayerState::Execute(FieldPlayer* player)
 }
 
 
+// OnMessage:收到消息先处理——Msg_ReceiveBall→切接球;Msg_SupportAttacker→切支援;
+// Msg_Wait→等待;Msg_GoHome→回位;Msg_PassToMe→若可踢则传球并通知接球者。
 bool GlobalPlayerState::OnMessage(FieldPlayer* player, const Telegram& telegram)
 {
   switch(telegram.Msg)
@@ -164,6 +180,9 @@ bool GlobalPlayerState::OnMessage(FieldPlayer* player, const Telegram& telegram)
 
 //***************************************************************************** CHASEBALL
 
+//******************** 追球 ChaseBall ********************
+// Enter:开 Seek(直奔球);Execute:进了踢球范围→切 KickBall;
+// 自己仍是离球最近者就继续追;否则(有人比我更近)→切回位。Exit:关 Seek。
 ChaseBall* ChaseBall::Instance()
 {
   static ChaseBall instance;
@@ -215,6 +234,9 @@ void ChaseBall::Exit(FieldPlayer* player)
 
 //*****************************************************************************SUPPORT ATTACKING PLAYER
 
+//******************** 支援 SupportAttacker ********************
+// 跑向最佳接应甜区;球队丢了球权→回位;甜区变了就更新目标;
+// 若自己能射门就 RequestPass;到位后停下盯球,没被盯防就要求传球。
 SupportAttacker* SupportAttacker::Instance()
 {
   static SupportAttacker instance;
@@ -294,6 +316,9 @@ void SupportAttacker::Exit(FieldPlayer* player)
 
 //************************************************************************ RETURN TO HOME REGION
 
+//******************** 回位 ReturnToHomeRegion ********************
+// Arrive 到老家里心;Execute:若比赛进行中且我离球最近、无人接球、门将没球→追球;
+// 已回到老家区域→切 Wait;比赛暂停时则等到位再切 Wait。
 ReturnToHomeRegion* ReturnToHomeRegion::Instance()
 {
   static ReturnToHomeRegion instance;
@@ -360,6 +385,10 @@ void ReturnToHomeRegion::Exit(FieldPlayer* player)
 
 //***************************************************************************** WAIT
 
+//******************** 等待 Wait ********************
+// 站桩等待:被挤离位就 Arrive 回位;到位后停住盯球;
+// 球队控球、我不是控球者且我位置更靠前→主动要求传球;
+// 若我离球最近且无人接球、门将没球→切追球。
 Wait* Wait::Instance()
 {
   static Wait instance;
@@ -437,6 +466,10 @@ void Wait::Exit(FieldPlayer* player){}
 
 //************************************************************************ KICK BALL
 
+//******************** 踢球 KickBall ********************
+// Enter:声明本球员控球;出脚频率不够就先回追球。
+// Execute:先算"球是否在身前"(点积 dot);门将控球/球在身后/已有接球者→回追球;
+// 能射门就加随机噪声后射门;受威胁且能找到接球队友就传球;都不行→带球推进 Dribble。
 KickBall* KickBall::Instance()
 {
   static KickBall instance;
@@ -583,6 +616,9 @@ void KickBall::Execute(FieldPlayer* player)
 
 //*************************************************************************** DRIBBLE
 
+//******************** 带球 Dribble ********************
+// 若球在我和本方球门之间(点积<0),就小角度转身把球拨正;
+// 否则沿朝向把球向前趟;趟完立刻切回追球 ChaseBall 去追刚踢出的球。
 Dribble* Dribble::Instance()
 {
   static Dribble instance;
@@ -646,6 +682,9 @@ void Dribble::Execute(FieldPlayer* player)
 
 //************************************************************************     RECEIVEBALL
 
+//******************** 接球 ReceiveBall ********************
+// Enter:声明我是接球者+控球者;按概率/是否在热区/附近有无对方,选 Arrive(等落点)
+// 或 Pursuit(追滚动的球);Execute:球够近或球队丢权→追球;到位后停下盯球。
 ReceiveBall* ReceiveBall::Instance()
 {
   static ReceiveBall instance;

@@ -1,3 +1,14 @@
+﻿//==============================================================================================
+//【文件说明】GoalKeeperStates.cpp —— 守门员 5 个状态类的具体实现
+//
+//【这个文件是干什么的?】
+//  实现 TendGoal(守门)/InterceptBall(拦截)/ReturnHome(回门)/PutBallBackInPlay(发球)
+//  等状态的 Enter/Execute/Exit;切换条件写在各 Execute 里(如球进手范围→拿球发球)。
+//
+//【本文件包含了谁?】
+//  自己的 .h、GoalKeeper.h、SoccerTeam.h、SoccerPitch.h、SoccerBall.h、Goal.h、
+//  SteeringBehaviors.h、ParamLoader.h、MessageDispatcher、SoccerMessages 等。
+//==============================================================================================
 #include "GoalKeeperStates.h"
 #include "Debug/DebugConsole.h"
 #include "SoccerPitch.h"
@@ -21,6 +32,8 @@
 //--------------------------- GlobalKeeperState -------------------------------
 //-----------------------------------------------------------------------------
 
+//**************** 全局状态 GlobalKeeperState ****************
+// OnMessage:收到 Msg_GoHome→回门;收到 Msg_ReceiveBall→去拦截。
 GlobalKeeperState* GlobalKeeperState::Instance()
 {
   static GlobalKeeperState instance;
@@ -65,6 +78,12 @@ bool GlobalKeeperState::OnMessage(GoalKeeper* keeper, const Telegram& telegram)
 //  goalmouth to attempt to intercept it. (see next state)
 //------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------
+//**************** 守门 TendGoal(主状态)****************
+// Enter:开 Interpose(把自己插在球与门线目标之间),并设门线上的站位目标;
+// Execute:每帧更新站位目标;球到手范围→停球并切发球;球进拦截范围且球队没控球→拦截;
+// 离门太远且本队控球→回门。Exit:关 Interpose。
+//--------------------------------------------------------------------------------
 TendGoal* TendGoal::Instance()
 {
   static TendGoal instance;
@@ -132,6 +151,8 @@ void TendGoal::Exit(GoalKeeper* keeper)
 //  the goal region before changing state back to TendGoal
 //------------------------------------------------------------------------
 
+//**************** 回门 ReturnHome ****************
+// Arrive 回老家区域中心;到位或球队丢权→切回守门 TendGoal。
 ReturnHome* ReturnHome::Instance()
 {
   static ReturnHome instance;
@@ -171,6 +192,9 @@ void ReturnHome::Exit(GoalKeeper* keeper)
 //  within his home region.
 //------------------------------------------------------------------------
 
+//**************** 拦截 InterceptBall ****************
+// Enter:开 Pursuit(追球);Execute:离门太远且不是全场离球最近者→回门;
+// 球到手范围→停球并切发球。Exit:关 Pursuit。
 InterceptBall* InterceptBall::Instance()
 {
   static InterceptBall instance;
@@ -225,6 +249,9 @@ void InterceptBall::Exit(GoalKeeper* keeper)
 //
 //------------------------------------------------------------------------
 
+//**************** 发球 PutBallBackInPlay ****************
+// Enter:声明守门员控球,叫双方球员都回位;
+// Execute:找到能传的队友就把球踢过去、通知接球者、切回守门;找不到就原地等。
 PutBallBackInPlay* PutBallBackInPlay::Instance()
 {
   static PutBallBackInPlay instance;

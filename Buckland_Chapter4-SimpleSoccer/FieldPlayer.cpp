@@ -1,3 +1,15 @@
+﻿//==============================================================================================
+//【文件说明】FieldPlayer.cpp —— 场上球员类的实现
+//
+//【这个文件是干什么的?】
+//  构造球员并装好状态机与踢球限频器;Update() 每帧驱动:先让当前状态决策,
+//  再算转向力、刹车、转身、加速、位移,最后做防穿透约束;Render() 把球员画成
+//  一个四边形 + 圆头,并按菜单开关显示当前状态名/编号/目标点。
+//
+//【本文件包含了谁?】
+//  自己的 .h、PlayerBase.h、SteeringBehaviors.h、ParamLoader.h、SoccerTeam.h、
+//  time/Regulator.h、2D 几何/变换工具、绘图 gdi 等。
+//==============================================================================================
 #include "FieldPlayer.h"
 #include "PlayerBase.h"
 #include "SteeringBehaviors.h"
@@ -20,6 +32,7 @@ using std::vector;
 
 //------------------------------- dtor ---------------------------------------
 //----------------------------------------------------------------------------
+// 析构函数:释放踢球限频器和状态机。
 FieldPlayer::~FieldPlayer()
 {
   delete m_pKickLimiter;
@@ -28,6 +41,8 @@ FieldPlayer::~FieldPlayer()
 
 //----------------------------- ctor -------------------------------------
 //------------------------------------------------------------------------
+// 构造函数:先调父类 PlayerBase 构造,再 new 状态机;若给了初始状态就设为当前/上一状态,
+// 全局状态设为 GlobalPlayerState,并立刻调用该状态的 Enter(this);开 SeparationOn;建踢球限频器。
 FieldPlayer::FieldPlayer(SoccerTeam* home_team,
                       int   home_region,
                       State<FieldPlayer>* start_state,
@@ -71,6 +86,11 @@ FieldPlayer::FieldPlayer(SoccerTeam* home_team,
 //
 //  
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Update 每帧:①状态机决策;②算转向力;③无转向力时减速(速度×0.8);
+// ④限制每帧转向角度(Clamp 夹到 ±PlayerMaxTurnRate);⑤旋转朝向、按前进分量加速、
+// 截断最大速度、更新位置;⑥按开关做球员间防穿透约束。
+//--------------------------------------------------------------------------------
 void FieldPlayer::Update()
 { 
   //run the logic for the current state
@@ -131,6 +151,7 @@ void FieldPlayer::Update()
 //
 //  routes any messages appropriately
 //------------------------------------------------------------------------
+// HandleMessage:收到消息就直接转发给状态机,由当前状态决定如何处理。
 bool FieldPlayer::HandleMessage(const Telegram& msg)
 {
   return m_pStateMachine->HandleMessage(msg);
@@ -139,6 +160,8 @@ bool FieldPlayer::HandleMessage(const Telegram& msg)
 //--------------------------- Render -------------------------------------
 //
 //------------------------------------------------------------------------
+// Render:按球队颜色选画笔;用 WorldTransform 把球员四边形变换到世界坐标画出,
+// 再画圆头(被威胁且本队控球时头变黄);按参数开关显示状态名/编号/目标点。
 void FieldPlayer::Render()                                         
 {
   gdi->TransparentText();

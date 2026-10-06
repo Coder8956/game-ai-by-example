@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】Raven_WeaponSystem.cpp —— 武器系统的实现
+//==============================================================================================
 #include "Raven_WeaponSystem.h"
 #include "armory/Weapon_RocketLauncher.h"
 #include "armory/Weapon_RailGun.h"
@@ -14,6 +17,7 @@
 
 //------------------------- ctor ----------------------------------------------
 //-----------------------------------------------------------------------------
+// 构造函数:记下参数,调 Initialize 给一把默认 blaster。
 Raven_WeaponSystem::Raven_WeaponSystem(Raven_Bot* owner,
                                        double ReactionTime,
                                        double AimAccuracy,
@@ -27,6 +31,7 @@ Raven_WeaponSystem::Raven_WeaponSystem(Raven_Bot* owner,
 
 //------------------------- dtor ----------------------------------------------
 //-----------------------------------------------------------------------------
+// 析构函数:把 map 里所有武器 new 的对象 delete 掉。
 Raven_WeaponSystem::~Raven_WeaponSystem()
 {
   for (unsigned int w=0; w<m_WeaponMap.size(); ++w)
@@ -38,7 +43,10 @@ Raven_WeaponSystem::~Raven_WeaponSystem()
 //------------------------------ Initialize -----------------------------------
 //
 //  initializes the weapons
+//(原文注释:初始化武器)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// Initialize:清掉旧武器,new 一把 blaster,其他三种武器先置空。
 void Raven_WeaponSystem::Initialize()
 {
   //delete any existing weapons
@@ -62,6 +70,9 @@ void Raven_WeaponSystem::Initialize()
 //-------------------------------- SelectWeapon -------------------------------
 //
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// SelectWeapon:有目标时,遍历身上所有武器,按 GetDesirability(距离/弹药)打分,
+//   选最高分的;没目标就用 blaster。
 void Raven_WeaponSystem::SelectWeapon()
 { 
   //if a target is present use fuzzy logic to determine the most desirable 
@@ -108,7 +119,10 @@ void Raven_WeaponSystem::SelectWeapon()
 //  type to the bot's inventory.
 //
 //  if the bot already has a weapon of this type then only the ammo is added
+//(原文注释翻译:如果机器人已有这种武器,只加子弹)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// AddWeapon:按类型 new 一把新武器;已有则只加子弹,没有就加进 inventory。
 void  Raven_WeaponSystem::AddWeapon(unsigned int weapon_type)
 {
   //create an instance of this weapon
@@ -154,7 +168,9 @@ void  Raven_WeaponSystem::AddWeapon(unsigned int weapon_type)
 //  returns a pointer to any matching weapon.
 //
 //  returns a null pointer if the weapon is not present
+//(原文注释:没有这种武器就返回 NULL 指针)
 //-----------------------------------------------------------------------------
+// GetWeaponFromInventory:直接从 map 取;ChangeWeapon:切换当前武器。
 Raven_Weapon* Raven_WeaponSystem::GetWeaponFromInventory(int weapon_type)
 {
   return m_WeaponMap[weapon_type];
@@ -172,7 +188,11 @@ void Raven_WeaponSystem::ChangeWeapon(unsigned int type)
 //
 //  this method aims the bots current weapon at the target (if there is a
 //  target) and, if aimed correctly, fires a round
+//(原文注释翻译:把当前武器瞄准目标,瞄准了就打一发)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// TakeAimAndShoot:能打就打。先预判目标位置,转脸对准,
+//   看见目标超过反应时间才开火;打一枪加一点瞄准误差。
 void Raven_WeaponSystem::TakeAimAndShoot()const
 {
   //aim the weapon only if the current target is shootable or if it has only
@@ -237,7 +257,9 @@ void Raven_WeaponSystem::TakeAimAndShoot()const
 //
 //  adds a random deviation to the firing angle not greater than m_dAimAccuracy 
 //  rads
+//(原文注释:给射击角度加随机偏差,不超过 m_dAimAccuracy 弧度)
 //-----------------------------------------------------------------------------
+// AddNoiseToAim:把瞄准方向随机转一个小角度。
 void Raven_WeaponSystem::AddNoiseToAim(Vector2D& AimingPos)const
 {
   Vector2D toPos = AimingPos - m_pOwner->Pos();
@@ -252,7 +274,9 @@ void Raven_WeaponSystem::AddNoiseToAim(Vector2D& AimingPos)const
 //  predicts where the target will be located in the time it takes for a
 //  projectile to reach it. This uses a similar logic to the Pursuit steering
 //  behavior.
+//(原文注释翻译:预判子弹飞到时目标在哪;类似 Pursuit 转向行为)
 //-----------------------------------------------------------------------------
+// PredictFuturePositionOfTarget:看多久=距离/(子弹速+目标速),目标位置+速度*时间。
 Vector2D Raven_WeaponSystem::PredictFuturePositionOfTarget()const
 {
   double MaxSpeed = GetCurrentWeapon()->GetMaxProjectileSpeed();
@@ -276,7 +300,9 @@ Vector2D Raven_WeaponSystem::PredictFuturePositionOfTarget()const
 //
 //  returns the amount of ammo remaining for the specified weapon. Return zero
 //  if the weapon is not present
+//(原文注释翻译:返回指定武器剩余子弹数;没有该武器返回 0)
 //-----------------------------------------------------------------------------
+// GetAmmoRemainingForWeapon:查子弹;ShootAt:开火;RenderCurrentWeapon:画当前武器。
 int Raven_WeaponSystem::GetAmmoRemainingForWeapon(unsigned int weapon_type)
 {
   if (m_WeaponMap[weapon_type])
@@ -303,6 +329,7 @@ void Raven_WeaponSystem::RenderCurrentWeapon()const
   GetCurrentWeapon()->Render();
 }
 
+// RenderDesirabilities:调试用,在机器人旁边画各武器的打分。
 void Raven_WeaponSystem::RenderDesirabilities()const
 {
   Vector2D p = m_pOwner->Pos();

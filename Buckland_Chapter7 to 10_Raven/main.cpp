@@ -1,3 +1,44 @@
+﻿//==============================================================================================
+//【文件说明】main.cpp —— Windows 程序入口 + 主循环
+//
+//【全工程文件地图】(Raven 这一章)
+//
+//   main.cpp ──┬── Raven_Game(游戏总管)
+//              │      │
+//              │      ├── Raven_Map(地图)
+//              │      │     ├── m_Walls(墙) / m_Doors(门)
+//              │      │     ├── m_TriggerSystem(触发器:加血/武器/按钮/声音)
+//              │      │     ├── m_pNavGraph(导航图) + CellSpace(格子空间)
+//              │      │     └── m_SpawnPoints(出生点)
+//              │      │
+//              │      ├── m_Bots (Raven_Bot 列表) ── 每个 bot 内部:
+//              │      │     ├── m_pBrain        Goal_Think        (goals/ 目录)
+//              │      │     ├── m_pSensoryMem    Raven_SensoryMemory(感官记忆)
+//              │      │     ├── m_pTargSys       Raven_TargetingSystem(选目标)
+//              │      │     ├── m_pSteering      Raven_Steering       (转向行为)
+//              │      │     ├── m_pPathPlanner   Raven_PathPlanner    (A* 寻路)
+//              │      │     └── m_pWeaponSys     Raven_WeaponSystem    (武器/瞄准/射击)
+//              │      │
+//              │      ├── m_Projectiles(子弹) ── armory/ 目录
+//              │      ├── m_pPathManager(时间分片寻路管理器)
+//              │      └── m_pGraveMarkers(墓碑)
+//              │
+//              ├── Raven_UserOptions(菜单选项单例)
+//              ├── Raven_Scriptor(脚本参数单例,读 Params.lua)
+//              └── Resource.h(菜单/资源 ID)
+//
+//【一次完整执行的调用流程】
+//   WinMain()
+//     ├─ 注册窗口类 RegisterClassEx
+//     ├─ 创建窗口 CreateWindowEx
+//     │    └─ WM_CREATE 消息里:new Raven_Game()(构造里读默认地图 + 加 bot)
+//     ├─ PrecisionTimer 按 FrameRate 启动
+//     └─ 消息循环:
+//          PeekMessage 处理所有 Windows 消息(键盘/鼠标/菜单/重绘)
+//          每帧到点了:
+//             g_pRaven->Update()   ← 推进整个世界
+//             RedrawWindow()       ← 触发 WM_PAINT → g_pRaven->Render()
+//==============================================================================================
 #pragma warning (disable:4786)
 #include <windows.h>
 #include <time.h>
@@ -22,10 +63,12 @@
 //--------------------------------- Globals ------------------------------
 //------------------------------------------------------------------------
 
+// g_szApplicationName/g_szWindowClassName:窗口标题和类名。
 char* g_szApplicationName = "Raven";
 char*	g_szWindowClassName = "MyWindowClass";
 
 
+// g_pRaven:全局唯一的游戏实例指针。
 Raven_Game* g_pRaven;
 
 
@@ -34,6 +77,8 @@ Raven_Game* g_pRaven;
 //	This is the callback function which handles all the windows messages
 //-------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------
+// WindowProc:Windows 消息回调。所有按键/鼠标/菜单/重绘/销毁都从这里分发。
 LRESULT CALLBACK WindowProc (HWND   hwnd,
                              UINT   msg,
                              WPARAM wParam,
@@ -41,6 +86,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 {
  
    //these hold the dimensions of the client window area
+// cxClient/cyClient:客户区大小;下面几个 static 是双缓冲用的。
 	 static int cxClient, cyClient; 
 
 	 //used to create the back buffer
@@ -58,6 +104,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 	
 		//A WM_CREATE msg is sent when your application window is first
 		//created
+// WM_CREATE:窗口第一次创建时——设随机种子、建双缓冲、new Raven_Game、勾菜单项。
     case WM_CREATE:
       {
          //to get get the size of the client window first we need  to create
@@ -115,6 +162,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
       break;
 
+// WM_KEYUP:松键——Esc 退出/P 暂停/1~4 换武器/X 释放 bot/上箭头加 bot/下箭头删 bot。
     case WM_KEYUP:
       {
         switch(wParam)
@@ -178,6 +226,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
       break;
 
 
+// WM_LBUTTONDOWN/WM_RBUTTONDOWN:鼠标左右键,转发给游戏。
     case WM_LBUTTONDOWN:
     {
       g_pRaven->ClickLeftMouseButton(MAKEPOINTS(lParam));
@@ -192,6 +241,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
     
     break;
 
+// WM_COMMAND:菜单命令——加载地图/加 bot/删 bot/暂停/各种显示开关。
     case WM_COMMAND:
     {
 
@@ -335,6 +385,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
     }
 
     
+// WM_PAINT:重绘——清屏→g_pRaven->Render()→把后缓冲贴到前缓冲。
     case WM_PAINT:
       {
  		       
@@ -371,6 +422,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
       break;
 
     //has the user resized the client area?
+// WM_SIZE:窗口大小变了,重建后缓冲位图。
 		case WM_SIZE:
 		  {
         //if so we need to update our variables so that any drawing
@@ -403,6 +455,7 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 
       break;
           
+// WM_DESTROY:清理 GDI 对象,PostQuitMessage 退出。
 		 case WM_DESTROY:
 			 {
 
@@ -431,6 +484,8 @@ LRESULT CALLBACK WindowProc (HWND   hwnd,
 //
 //	The entry point of the windows program
 //------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// WinMain:Windows 程序入口(代替 main)。注册窗口类→建窗口→消息循环。
 int WINAPI WinMain (HINSTANCE hInstance,
                     HINSTANCE hPrevInstance,
                     LPSTR     szCmdLine, 
@@ -444,6 +499,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
 	WNDCLASSEX     winclass;
 
   // first fill in the window class stucture
+// 填 WNDCLASSEX 结构:窗口过程/图标/光标/菜单/类名。
 	winclass.cbSize        = sizeof(WNDCLASSEX);
 	winclass.style         = CS_HREDRAW | CS_VREDRAW;
   winclass.lpfnWndProc   = WindowProc;
@@ -467,6 +523,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
   }
 		
 
+// try 块里:创建窗口→显示→起定时器→进入消息循环。
   try
   {  		 
 		 //create the window and assign its ID to hwnd    
@@ -503,6 +560,7 @@ int WINAPI WinMain (HINSTANCE hInstance,
     //enter the message loop
     bool bDone = false;
 
+// 消息循环:先 PeekMessage 处理消息,到点了就 Update + RedrawWindow。
     while(!bDone)
     {
       while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) ) 

@@ -1,3 +1,6 @@
+﻿//==============================================================================================
+//【文件说明】Raven_SensoryMemory.cpp —— 感官记忆的实现
+//==============================================================================================
 #include "Raven_SensoryMemory.h"
 #include "Raven_Game.h"
 #include "time/crudetimer.h"
@@ -6,6 +9,7 @@
 
 //------------------------------- ctor ----------------------------------------
 //-----------------------------------------------------------------------------
+// 构造函数:记下 owner 和记忆时长。
  Raven_SensoryMemory:: Raven_SensoryMemory(Raven_Bot* owner,
                                            double MemorySpan):m_pOwner(owner),
                                                             m_dMemorySpan(MemorySpan)
@@ -14,6 +18,8 @@
 
 //--------------------- MakeNewRecordIfNotAlreadyPresent ----------------------
 
+//--------------------------------------------------------------------------------
+// MakeNewRecordIfNotAlreadyPresent:在 map 里查 pOpponent,没有就 new 一条空记录。
 void Raven_SensoryMemory::MakeNewRecordIfNotAlreadyPresent(Raven_Bot* pOpponent)
 {
   //else check to see if this Opponent already exists in the memory. If it doesn't,
@@ -28,6 +34,8 @@ void Raven_SensoryMemory::MakeNewRecordIfNotAlreadyPresent(Raven_Bot* pOpponent)
 //
 //  this removes a bot's record from memory
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// RemoveBotFromMemory:从 map 里 erase 掉某个 bot 的记录。
 void Raven_SensoryMemory::RemoveBotFromMemory(Raven_Bot* pBot)
 {
   MemoryMap::iterator record = m_MemoryMap.find(pBot);
@@ -43,7 +51,11 @@ void Raven_SensoryMemory::RemoveBotFromMemory(Raven_Bot* pBot)
 // this updates the record for an individual opponent. Note, there is no need to
 // test if the opponent is within the FOV because that test will be done when the
 // UpdateVision method is called
+//(原文注释翻译:更新某个对手的记录;不用测是否在视野内,那是 UpdateVision 的事)
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// UpdateWithSoundSource:听到某个 bot 发出声音时,记一笔时间/位置;
+//   如果彼此间无遮挡线(LOS),把 bShootable 设 true。
 void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
 {
   //make sure the bot being examined is not this bot
@@ -79,6 +91,9 @@ void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
 //  they are in the field of view. Each bot's memory record is updated
 //  accordingly
 //-----------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+// UpdateVision:每帧遍历所有 bot,判断:有没有遮挡?在不在视野锥里?
+//   在视野内就刷新时间/位置;刚进视野就记下 fTimeBecameVisible。
 void Raven_SensoryMemory::UpdateVision()
 {
   //for each bot in the world test to see if it is visible to the owner of
@@ -138,8 +153,11 @@ void Raven_SensoryMemory::UpdateVision()
 //------------------------ GetListOfRecentlySensedOpponents -------------------
 //
 //  returns a list of the bots that have been sensed recently
+//(原文注释:返回最近感知过的 bot 列表)
 //-----------------------------------------------------------------------------
 std::list<Raven_Bot*> 
+//--------------------------------------------------------------------------------
+// GetListOfRecentlySensedOpponents:遍历记忆表,最近记忆时长内更新过的挑出来。
 Raven_SensoryMemory::GetListOfRecentlySensedOpponents()const
 {
   //this will store all the opponents the bot can remember
@@ -164,7 +182,9 @@ Raven_SensoryMemory::GetListOfRecentlySensedOpponents()const
 //
 //  returns true if the bot given as a parameter can be shot (ie. its not
 //  obscured by walls)
+//(原文注释翻译:返回 true 表示这个 bot 没被墙挡着、可以射击)
 //-----------------------------------------------------------------------------
+// isOpponentShootable/isOpponentWithinFOV:查记忆表里的标志位。
 bool Raven_SensoryMemory::isOpponentShootable(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
@@ -197,6 +217,7 @@ bool  Raven_SensoryMemory::isOpponentWithinFOV(Raven_Bot* pOpponent)const
 //
 //  returns the last recorded position of the bot
 //-----------------------------------------------------------------------------
+// GetLastRecordedPositionOfOpponent:返回最后位置;没记录就抛异常。
 Vector2D  Raven_SensoryMemory::GetLastRecordedPositionOfOpponent(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
@@ -213,6 +234,7 @@ Vector2D  Raven_SensoryMemory::GetLastRecordedPositionOfOpponent(Raven_Bot* pOpp
 //
 //  returns the amount of time the given bot has been visible
 //-----------------------------------------------------------------------------
+// GetTimeOpponentHasBeenVisible:已看见多久=现在时间-刚进视野时间。
 double  Raven_SensoryMemory::GetTimeOpponentHasBeenVisible(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
@@ -230,6 +252,7 @@ double  Raven_SensoryMemory::GetTimeOpponentHasBeenVisible(Raven_Bot* pOpponent)
 //  returns the amount of time the given opponent has remained out of view
 //  returns a high value if opponent has never been seen or not present
 //-----------------------------------------------------------------------------
+// GetTimeOpponentHasBeenOutOfView:离开视野多久=现在时间-最后看见时间。
 double Raven_SensoryMemory::GetTimeOpponentHasBeenOutOfView(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
@@ -246,6 +269,7 @@ double Raven_SensoryMemory::GetTimeOpponentHasBeenOutOfView(Raven_Bot* pOpponent
 //
 //  returns the amount of time the given bot has been visible
 //-----------------------------------------------------------------------------
+// GetTimeSinceLastSensed:距上次感知过了多久。
 double  Raven_SensoryMemory::GetTimeSinceLastSensed(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
@@ -262,6 +286,7 @@ double  Raven_SensoryMemory::GetTimeSinceLastSensed(Raven_Bot* pOpponent)const
 //
 //  renders boxes around the opponents it has sensed recently.
 //-----------------------------------------------------------------------------
+// RenderBoxesAroundRecentlySensed:调试用,在最近感知过的敌人周围画橙框。
 void  Raven_SensoryMemory::RenderBoxesAroundRecentlySensed()const
 {
   std::list<Raven_Bot*> opponents = GetListOfRecentlySensedOpponents();

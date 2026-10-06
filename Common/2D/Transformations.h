@@ -1,3 +1,21 @@
+﻿//==============================================================================================
+//【文件说明】Transformations.h —— "局部坐标 ↔ 世界坐标"互相转换
+//
+//【这个文件是干什么的?】
+//  画一辆小车时,通常先在"小车自己的坐标系"里画好形状(车头朝右、原点在中心),
+//  再按它在世界里的位置和朝向整体搬过去。本文件提供这一组转换函数:
+//  点/向量 在"局部空间(以角色为中心)"和"世界空间(屏幕坐标)"之间来回换算,
+//  并顺手提供"绕原点旋转向量"和"生成一圈探路触须(whisker)"两个工具。
+//
+//【谁在使用这个文件?】
+//  Vehicle.cpp、MovingEntity.h、SteeringBehaviors —— 第 3 章车辆的绘制与操控;
+//  第 4 章球员也类似使用。
+//
+//【本文件包含了谁?】
+//  <vector>        —— std::vector 动态数组;
+//  "Vector2D.h"   —— 二维向量;
+//  "C2DMatrix.h"   —— 3×3 变换矩阵(所有转换都靠它做乘法)。
+//==============================================================================================
 #ifndef TRANSFORMATIONS_H
 #define TRANSFORMATIONS_H
 //------------------------------------------------------------------------
@@ -10,6 +28,11 @@
 //  Author: Mat Buckland (fup@ai-junkie.com)
 //
 //------------------------------------------------------------------------
+// ↓↓↓ 原文翻译【Transformations —— 坐标变换】:
+//   在"世界空间"和"局部空间"之间转换二维向量的一组函数。作者:Mat Buckland。
+//------------------------------------------------------------------------
+// 注意:第 17 行 #include "Transformations.h" 是原作者对自己文件的重复包含(无害,
+// 有包含保护兜底),原样保留。
 #include <vector>
 
 #include "Vector2D.h"
@@ -58,6 +81,8 @@ inline std::vector<Vector2D> WorldTransform(std::vector<Vector2D> &points,
 
 //--------------------------- WorldTransform -----------------------------
 //
+// ↓↓↓ 原文翻译【WorldTransform(无缩放重载)】:上面那个的简化版——不缩放,只按位置和
+//   朝向把整组点摆到世界中。
 //  given a std::vector of 2D vectors, a position and  orientation
 //  this function transforms the 2D vectors into the object's world space
 //------------------------------------------------------------------------
@@ -87,6 +112,7 @@ inline std::vector<Vector2D> WorldTransform(std::vector<Vector2D> &points,
 //--------------------- PointToWorldSpace --------------------------------
 //
 //  Transforms a point from the agent's local space into world space
+// ↓↓↓ 原文翻译【PointToWorldSpace】:把一个点从角色的局部空间变换到世界空间。
 //------------------------------------------------------------------------
 inline Vector2D PointToWorldSpace(const Vector2D &point,
                                     const Vector2D &AgentHeading,
@@ -114,6 +140,8 @@ inline Vector2D PointToWorldSpace(const Vector2D &point,
 //--------------------- VectorToWorldSpace --------------------------------
 //
 //  Transforms a vector from the agent's local space into world space
+// ↓↓↓ 原文翻译【VectorToWorldSpace】:把一个向量(方向)从局部变到世界(只旋转不平移,
+//   因为向量没有"位置")。
 //------------------------------------------------------------------------
 inline Vector2D VectorToWorldSpace(const Vector2D &vec,
                                      const Vector2D &AgentHeading,
@@ -138,6 +166,8 @@ inline Vector2D VectorToWorldSpace(const Vector2D &vec,
 //--------------------- PointToLocalSpace --------------------------------
 //
 //------------------------------------------------------------------------
+// ↓↓↓ 原文翻译【PointToLocalSpace】:反向——把世界里的点变回"以角色为中心"的局部坐标。
+//   做法:先平移到角色位置的反方向(Tx、Ty 用点积算出),再旋转回来。
 inline Vector2D PointToLocalSpace(const Vector2D &point,
                              Vector2D &AgentHeading,
                              Vector2D &AgentSide,
@@ -167,6 +197,7 @@ inline Vector2D PointToLocalSpace(const Vector2D &point,
 //--------------------- VectorToLocalSpace --------------------------------
 //
 //------------------------------------------------------------------------
+// VectorToLocalSpace:反向——把世界向量变回局部向量(只旋转,不平移)。
 inline Vector2D VectorToLocalSpace(const Vector2D &vec,
                              const Vector2D &AgentHeading,
                              const Vector2D &AgentSide)
@@ -191,6 +222,7 @@ inline Vector2D VectorToLocalSpace(const Vector2D &vec,
 //-------------------------- Vec2DRotateAroundOrigin --------------------------
 //
 //  rotates a vector ang rads around the origin
+// ↓↓↓ 原文翻译【Vec2DRotateAroundOrigin】:把向量 v 绕原点旋转 ang 弧度。
 //-----------------------------------------------------------------------------
 inline void Vec2DRotateAroundOrigin(Vector2D& v, double ang)
 {
@@ -212,6 +244,10 @@ inline void Vec2DRotateAroundOrigin(Vector2D& v, double ang)
 //  of whiskers radiating away from the origin and with equal distance between
 //  them. (like the spokes of a wheel clipped to a specific segment size)
 //----------------------------------------------------------------------------
+// ↓↓↓ 原文翻译【CreateWhiskers —— 生成探路触须】:
+//   给定原点、朝向、视野张角 fov、触须长度和触须条数,返回一组从原点向外扇形
+//   均匀辐射的触须末端点(像车轮辐条截在一段扇形里)。车辆避障时就用这些触须
+//   去探测前方有没有墙。
 inline std::vector<Vector2D> CreateWhiskers(unsigned int  NumWhiskers,
                                             double        WhiskerLength,
                                             double        fov,

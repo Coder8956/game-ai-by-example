@@ -1,3 +1,20 @@
+﻿//==============================================================================================
+//【文件说明】geometry.h —— 2D 几何工具函数大全
+//
+//【这个文件是干什么的?】
+//  收集了一堆"判断位置关系"的小工具:射线与平面交点、点在平面哪一侧、射线与圆相交、
+//  点到线段距离、两线段是否相交、两圆是否重叠/包围、圆面积、点是否在圆内等等。
+//  碰撞检测、进球判定、避障都靠这些函数。
+//
+//【谁在使用这个文件?】
+//  Goal.h、SoccerBall.cpp —— 进球判定、撞墙反弹;
+//  Wall2D.h、WallIntersectionTests.h —— 墙与角色的相交测试;
+//  几乎所有需要"碰撞/相交判断"的游戏代码。
+//
+//【本文件包含了谁?】
+//  misc/utils.h、2d/Vector2D.h、2d/C2DMatrix.h、Transformations.h —— 向量/矩阵/坐标变换;
+//  <math.h>(sqrt/sin/cos/acos/fabs)、<vector>(动态数组)。
+//==============================================================================================
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 //------------------------------------------------------------------------
@@ -8,6 +25,8 @@
 //
 //Author: Mat Buckland (fup@ai-junkie.com)
 //
+//------------------------------------------------------------------------
+// ↓↓↓ 原文翻译【geometry.h —— 几何】:有用的 2D 几何函数集。作者:Mat Buckland。
 //------------------------------------------------------------------------
 #include "misc/utils.h"
 #include "2d/Vector2D.h"
@@ -22,6 +41,9 @@
 
 //given a plane and a ray this function determins how far along the ray 
 //an interestion occurs. Returns negative if the ray is parallel
+// ↓↓↓ 原文翻译【DistanceToRayPlaneIntersection】:给定一条射线和一个平面,
+//   算射线前进多远会碰到平面;若射线与平面平行则返回负数(-1)。
+//   plane = 无限大的直线;PlanePoint 是平面上任一点,PlaneNormal 是平面法线。
 inline double DistanceToRayPlaneIntersection(Vector2D RayOrigin,
                                              Vector2D RayHeading,
                                              Vector2D PlanePoint,  //any point on the plane
@@ -42,6 +64,9 @@ inline double DistanceToRayPlaneIntersection(Vector2D RayOrigin,
 }
 
 //------------------------- WhereIsPoint --------------------------------------
+// ↓↓↓ 原文注释翻译【WhereIsPoint】:判断一个点在平面的哪一侧。
+// 下面这行定义枚举 span_type:三个取值 plane_backside(背面)/plane_front(正面)/
+// on_plane(恰在平面上)。
 enum span_type{plane_backside, plane_front, on_plane};
 inline span_type WhereIsPoint(Vector2D point,
                               Vector2D PointOnPlane, //any point on the plane
@@ -65,8 +90,11 @@ inline span_type WhereIsPoint(Vector2D point,
 }
 
 
+// pi:圆周率常量(后面 CircleArea 算圆面积用)。
 const double pi = 3.14159;
 //-------------------------- GetRayCircleIntersec -----------------------------
+// GetRayCircleIntersect:射线(从 RayOrigin 沿 RayHeading 出发)与圆的交点距离;
+// 不相交返回 -1。下面 DoRayCircleIntersect 只是判断"交不交"的 bool 版。
 inline double GetRayCircleIntersect(Vector2D RayOrigin,
                                     Vector2D RayHeading,
                                     Vector2D CircleOrigin,
@@ -109,6 +137,8 @@ inline bool DoRayCircleIntersect(Vector2D RayOrigin,
 //
 //  thanks to Dave Eberly for this one.
 //------------------------------------------------------------------------
+// ↓↓↓ 原文注释翻译【GetTangentPoints】:给定圆心 C、半径 R 和圆外一点 P,求出从 P
+//   向圆作两条切线时的两个切点 T1、T2;若 P 在圆内则返回 false。
 inline bool GetTangentPoints (Vector2D C, double R, Vector2D P, Vector2D& T1, Vector2D& T2)
 {
   Vector2D PmC = P - C;
@@ -139,6 +169,8 @@ inline bool GetTangentPoints (Vector2D C, double R, Vector2D P, Vector2D& T1, Ve
 //  given a line segment AB and a point P, this function calculates the 
 //  perpendicular distance between them
 //------------------------------------------------------------------------
+// ↓↓↓ 原文注释翻译【DistToLineSegment】:给定线段 AB 和点 P,算 P 到 AB 的垂直距离。
+//   (投影落到线段外时,取到最近端点的距离。)下面 DistToLineSegmentSq 是不开方的平方版。
 inline double DistToLineSegment(Vector2D A,
                                 Vector2D B,
                                 Vector2D P)
@@ -325,6 +357,8 @@ inline bool LineIntersection2D(Vector2D   A,
 //
 //  tests two polygons for intersection. *Does not check for enclosure*
 //------------------------------------------------------------------------
+// ObjectIntersection2D:判断两个多边形(点列)是否相交(只判边相交,不处理完全包含)。
+// SegmentObjectIntersection2D:一条线段 vs 一个多边形。
 inline bool ObjectIntersection2D(const std::vector<Vector2D>& object1,
                                  const std::vector<Vector2D>& object2)
 {
@@ -372,6 +406,8 @@ inline bool SegmentObjectIntersection2D(const Vector2D& A,
 //
 //  Returns true if the two circles overlap
 //------------------------------------------------------------------------
+// TwoCirclesOverlapped(两个重载):两圆是否重叠(圆心距 < 半径和 或 < 半径差)。
+// TwoCirclesEnclosed:一个圆是否完全包住另一个。
 inline bool TwoCirclesOverlapped(double x1, double y1, double r1,
                           double x2, double y2, double r2)
 {
@@ -431,6 +467,8 @@ inline bool TwoCirclesEnclosed(double x1, double y1, double r1,
 //
 // see http://astronomy.swin.edu.au/~pbourke/geometry/2circle/
 //------------------------------------------------------------------------ 
+// TwoCirclesIntersectionPoints:算出两圆相交时的两个交点坐标;
+// TwoCirclesIntersectionArea:算两圆重叠部分的面积。
 inline bool TwoCirclesIntersectionPoints(double x1, double y1, double r1,
                                   double x2, double y2, double r2,
                                   double &p3X, double &p3Y,
@@ -520,6 +558,7 @@ inline double TwoCirclesIntersectionArea(double x1, double y1, double r1,
 //
 //  given the radius, calculates the area of a circle
 //-----------------------------------------------------------------------
+// CircleArea:给定半径算圆面积(π·r²)。PointInCircle:点是否在圆内。
 inline double CircleArea(double radius)
 {
   return pi * radius * radius;
@@ -549,6 +588,8 @@ inline bool PointInCircle(Vector2D Pos,
 //  returns true if the line segemnt AB intersects with a circle at
 //  position P with radius radius
 //------------------------------------------------------------------------
+// LineSegmentCircleIntersection:线段 AB 是否与圆相交;下面
+// GetLineSegmentCircleClosestIntersectionPoint:进一步给出"最近的那个交点"。
 inline bool   LineSegmentCircleIntersection(Vector2D A,
                                             Vector2D B,
                                             Vector2D P,

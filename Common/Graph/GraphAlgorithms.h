@@ -1,5 +1,34 @@
+﻿//==============================================================================================
+//【文件说明】GraphAlgorithms.h —— 图搜索算法模板集(DFS/BFS/Dijkstra/A*/最小生成树)
+//
+//【这个文件是干什么的?】
+//  在 SparseGraph(稀疏图)之上,本文件实现了 5 个经典图算法类,供第 5 章寻路工程使用:
+//    Graph_SearchDFS       —— 深度优先搜索(一条路走到黑,走不通再回头);
+//    Graph_SearchBFS       —— 广度优先搜索(一层一层向外扩,无权图的最短路);
+//    Graph_SearchDijkstra  —— Dijkstra 最短路(按代价从小到大扩展,带权图的最短路);
+//    Graph_SearchAStar     —— A* 搜索(Dijkstra + 启发函数引导,实际寻路的主力);
+//    Graph_MinSpanningTree —— Prim 最小生成树(连遍所有节点且总代价最小)。
+//  每个算法都是模板类,实例化时传入具体的图类型,算法自动适配。
+//
+//【谁在使用这个文件?】
+//  HandyGraphFunctions.h(建全对最短路表)、第 5 章 Pathfinder.cpp(演示寻路);
+//  Raven(第 7~10 章)用 Graph_SearchA* 做 AI 导航。
+//
+//【本文件包含了谁?】
+//  <vector>/<list>/<queue>/<stack> —— 标准库容器(数组/链表/队列/栈);
+//  "graph/SparseGraph.h"        —— 被搜索的图类;
+//  "misc/PriorityQueue.h"        —— 索引优先队列(Dijkstra/A* 按代价排序用)。
+//
+//【C++ 小课堂:模板嵌套类型 typename】
+//  类里常写 typedef typename graph_type::EdgeType Edge;
+//    typename 是因为 graph_type 是模板参数,编译器不知道 EdgeType 是类型还是静态成员,
+//    加 typename 明确告诉它"这是个类型",否则编译报错。
+//==============================================================================================
 #ifndef GRAPHALGORITHMS_H
 #define GRAPHALGORITHMS_H
+//--------------------------------------------------------------------------------
+// #pragma warning(disable:4786) 原理详见 SoccerPitch.h;包含保护原理详见 Goal.h。
+//--------------------------------------------------------------------------------
 #pragma warning (disable:4786)
 
 //------------------------------------------------------------------------
@@ -30,6 +59,12 @@
 //  class to implement a depth first search. 
 //-----------------------------------------------------------------------------
 template<class graph_type>
+//--------------------------------------------------------------------------------
+// Graph_SearchDFS:深度优先搜索。用 std::stack(栈,后进先出)做待办列表;
+//   m_Visited 记录已访问节点;m_Route 记录每个节点的"父节点"(用于回溯出路径);
+//   m_SpanningTree 记录搜过的所有边(纯可视化用,不影响算法结果)。
+// 匿名枚举 {visited, unvisited, no_parent_assigned} 给状态起名字,提高可读性。
+//--------------------------------------------------------------------------------
 class Graph_SearchDFS
 {
 private:
@@ -102,6 +137,8 @@ public:
 
 //-----------------------------------------------------------------------------
 template <class graph_type>
+  // DFS::Search:把"伪边"入栈,然后反复"取栈顶→标记访问→把未访问邻居入栈",
+  //   直到找到目标或栈空。栈的特点是后进先出,所以会先往深处钻。
 bool Graph_SearchDFS<graph_type>::Search()
 {
   //create a std stack of edges
@@ -161,6 +198,8 @@ bool Graph_SearchDFS<graph_type>::Search()
 
 //-----------------------------------------------------------------------------
 template <class graph_type>
+  // GetPathToTarget:从目标节点沿 m_Route 父节点链一路 push_front 回溯回起点,
+  //   得到从起点到目标的节点编号链表。
 std::list<int> Graph_SearchDFS<graph_type>::GetPathToTarget()const 
 {
   std::list<int> path;
@@ -189,6 +228,10 @@ std::list<int> Graph_SearchDFS<graph_type>::GetPathToTarget()const
 //
 //-----------------------------------------------------------------------------
 template<class graph_type>
+//--------------------------------------------------------------------------------
+// Graph_SearchBFS:广度优先搜索。与 DFS 几乎一样,唯一区别是用 std::queue
+//   (队列,先进先出)代替栈——先扩散近的节点,再扩散远的;无权图中即最短路。
+//--------------------------------------------------------------------------------
 class Graph_SearchBFS
 {
 private:
@@ -259,6 +302,7 @@ public:
 //-----------------------------------------------------------------------------
 
 template <class graph_type>
+  // BFS::Search:逻辑同 DFS,但用队列(front 取队首/pop 弹出)。
 bool Graph_SearchBFS<graph_type>::Search()
 {
   //create a std queue of edges
@@ -359,6 +403,15 @@ std::list<int> Graph_SearchBFS<graph_type>::GetPathToTarget()const
 //  double NewCost = m_CostToThisNode[best] + pE->Cost;
 //------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// Graph_SearchDijkstra:Dijkstra 单源最短路。
+//   三个关键数组:
+//     m_ShortestPathTree —— 最短路径树(每个节点"确定"的父边);
+//     m_CostToThisNode   —— 当前已知到各节点的最小代价;
+//     m_SearchFrontier   —— 边界(已发现但未确定的节点,每条的父边)。
+//   用索引优先队列 IndexedPriorityQLow 按"代价最小"每次取一个节点扩展;
+//   扩展时做"松弛(relax)":若经当前节点到邻居更便宜,就更新邻居代价并入队。
+//--------------------------------------------------------------------------------
 class Graph_SearchDijkstra
 {
 private:
@@ -427,6 +480,8 @@ public:
 
 //-----------------------------------------------------------------------------
 template <class graph_type>
+  // Dijkstra::Search:① 起点入队;② 循环取代价最小节点,放进 SPT;
+  //   ③ 遍历其所有出边,做松弛(更便宜就更新代价/父边);④ 遇目标即返回。
 void Graph_SearchDijkstra<graph_type>::Search()
 {
   //create an indexed priority queue that sorts smallest to largest
@@ -527,6 +582,13 @@ std::list<int> Graph_SearchDijkstra<graph_type>::GetPathToTarget()const
 //  This search is more commonly known as A* (pronounced Ay-Star)
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
+//--------------------------------------------------------------------------------
+// Graph_SearchAStar:A* 搜索。比 Dijkstra 多一个模板参数 heuristic(启发函数类,
+//   见 AStarHeuristicPolicies.h)。估价函数 F = G + H:
+//     G(m_GCosts)= 从起点到当前节点的真实累计代价;
+//     H         = 从当前节点到目标的估计距离(启发函数 Calculate 算);
+//     F(m_FCosts)= G+H,优先队列按 F 排序——既已走代价小,又离目标近的节点先扩展。
+//--------------------------------------------------------------------------------
 class Graph_SearchAStar
 {
 private:
@@ -583,6 +645,7 @@ public:
 
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
+  // A*::Search:与 Dijkstra 几乎相同,区别在于入队排序用的是 F=G+H 而不是仅 G。
 void Graph_SearchAStar<graph_type, heuristic>::Search()
 {
   //create an indexed priority queue of nodes. The nodes with the
@@ -679,6 +742,11 @@ std::list<int> Graph_SearchAStar<graph_type, heuristic>::GetPathToTarget()const
 //  It uses a priority first queue implementation of Prims algorithm
 //------------------------------------------------------------------------
 template <class graph_type>
+//--------------------------------------------------------------------------------
+// Graph_MinSpanningTree:Prim 最小生成树。目的不是"找路",而是用最少量的总代价
+//   把所有节点连起来。算法与 Dijkstra 极像,但每次取"连到树的边"中代价最小的;
+//   若构造时不给起点(source<0),就从每个未连节点出发各跑一遍,生成"生成森林"。
+//--------------------------------------------------------------------------------
 class Graph_MinSpanningTree
 {
 private:

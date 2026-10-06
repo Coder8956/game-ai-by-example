@@ -1,5 +1,24 @@
+﻿//==============================================================================================
+//【文件说明】CellSpacePartition.h —— 二维空间网格划分(快速邻居查询)
+//
+//【这个文件是干什么的?】
+//  把整个游戏场地按 cellsX×cellsY 切成若干"格子"。每个实体按自己的坐标
+//  被分到某个格子里。要找"半径 R 内的邻居"时,不用遍历所有实体,
+//  只检查目标所在格子附近的那几个格子即可——大幅降低查询复杂度。
+//  移动实体每帧调 UpdateEntity 判断是否跨格,跨了就从旧格删、新格加。
+//
+//【谁在使用这个文件?】
+//  Raven(第 7~10 章)用它做机器人的近距离感知;第 5 章寻路演示也用。
+//
+//【本文件包含了谁?】
+//  <vector>/<list>/<cassert>;
+//  "2d/Vector2D.h"、"2d/InvertedAABBox2D.h"(反向坐标系的轴对齐包围盒)、"misc/utils.h"。
+//==============================================================================================
 #ifndef CELLSPACEPARTITION_H
 #define CELLSPACEPARTITION_H
+//--------------------------------------------------------------------------------
+// #pragma warning(disable:4786) 原理详见 SoccerPitch.h;包含保护原理详见 Goal.h。
+//--------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //
 //  Name:   CellSpacePartition.h
@@ -33,6 +52,9 @@
 //  defines a cell containing a list of pointers to entities
 //------------------------------------------------------------------------
 template <class entity>
+//--------------------------------------------------------------------------------
+// struct Cell —— 一个格子:装本格所有实体的链表 Members + 格子的包围盒 BBox。
+//--------------------------------------------------------------------------------
 struct Cell
 {
   //all the entities inhabiting this cell
@@ -52,6 +74,11 @@ struct Cell
 ///////////////////////////////////////////////////////////////////////////////
 
 template <class entity>
+//--------------------------------------------------------------------------------
+// class CellSpacePartition —— 空间划分器。
+//   m_Cells:所有格子数组;m_Neighbors:本轮查询找到的邻居缓存;
+//   m_curNeighbor:邻居遍历游标;m_dCellSizeX/Y:每格宽高。
+//--------------------------------------------------------------------------------
 class CellSpacePartition
 {
 private:
@@ -79,12 +106,14 @@ private:
   double  m_dCellSizeY;
 
 
+  // PositionToIndex:把坐标映射成格子编号(0..cellsX*cellsY-1)。
   //given a position in the game space this method determines the           
   //relevant cell's index
   inline int  PositionToIndex(const Vector2D& pos)const;
 
 public:
 
+  // 构造:按宽高和格子数算出每格大小,然后双重循环生成所有格子。
   CellSpacePartition(double width,        //width of the environment
                      double height,       //height ...
                      int   cellsX,       //number of cells horizontally
@@ -163,6 +192,11 @@ CellSpacePartition<entity>::CellSpacePartition(double  width,        //width of 
 //  neighbor list
 //------------------------------------------------------------------------
 template<class entity>
+//--------------------------------------------------------------------------------
+// CalculateNeighbors:以目标为中心、QueryRadius 为半径造一个查询盒;
+// 遍历所有格子,与查询盒重叠的格子里的实体,再用距离平方判断是否真在半径内,
+// 命中的塞进 m_Neighbors,末尾用 0 标记结束。
+//--------------------------------------------------------------------------------
 void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
                                                     double   QueryRadius)
 {
@@ -208,6 +242,7 @@ void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
 //  clears the cells of all entities
 //------------------------------------------------------------------------
 template<class entity>
+  // EmptyCells:清空所有格子里的实体链表。
 void CellSpacePartition<entity>::EmptyCells()
 {
   std::vector<Cell<entity> >::iterator it = m_Cells.begin();
@@ -224,6 +259,7 @@ void CellSpacePartition<entity>::EmptyCells()
 //  method calculates an index into its appropriate cell
 //------------------------------------------------------------------------
 template<class entity>
+  // PositionToIndex:按比例算出格子下标;越界时钳到最后一格。
 inline int CellSpacePartition<entity>::PositionToIndex(const Vector2D& pos)const
 {
   int idx = (int)(m_iNumCellsX * pos.x / m_dSpaceWidth) + 
@@ -241,6 +277,7 @@ inline int CellSpacePartition<entity>::PositionToIndex(const Vector2D& pos)const
 //  Used to add the entitys to the data structure
 //------------------------------------------------------------------------
 template<class entity>
+  // AddEntity:按位置算格子编号,把实体 push_back 进对应格子。
 inline void CellSpacePartition<entity>::AddEntity(const entity& ent)
 { 
   assert (ent);
@@ -257,6 +294,7 @@ inline void CellSpacePartition<entity>::AddEntity(const entity& ent)
 //  is updated accordingly
 //------------------------------------------------------------------------
 template<class entity>
+  // UpdateEntity:对比旧位置与新位置的格子编号,若变了就从旧格 remove、新格 push_back。
 inline void CellSpacePartition<entity>::UpdateEntity(const entity&  ent,
                                                      Vector2D       OldPos)
 {

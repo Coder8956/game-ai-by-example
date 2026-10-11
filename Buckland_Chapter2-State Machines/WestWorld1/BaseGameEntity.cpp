@@ -62,7 +62,8 @@ void BaseGameEntity::SetID(int val)
   // (否则可能和已存在的实体编号撞车);
   // && —— "并且";断言条件后面 && 的字符串是断言失败时显示的提示文字。
   // 断言只在 Debug 版编译时生效(用了 NDEBUG 宏),Release 版会自动剔除。
-  assert ( (val >= m_iNextValidID) && "<BaseGameEntity::SetID>: invalid ID");
+    //assert((val >= m_iNextValidID) && "<BaseGameEntity::SetID>: invalid ID");
+    assert ( (val >= m_iNextValidID) && "<BaseGameEntity::SetID>: invalid ID");
 
   // 把编号存进本对象的成员变量 m_ID。
   m_ID = val;
